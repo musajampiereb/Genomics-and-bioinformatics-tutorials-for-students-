@@ -1,0 +1,271 @@
+#!/bin/bash 
+################################
+## RNA-Seq data analysis PREP ##
+################################
+
+
+#INSTALLING CONDA IF YOU HAVE NOT DONE SO BEFORE#
+
+#Follow the link to install and activate conda on your terminal: https://docs.anaconda.com/anaconda/install/linux/
+
+#Close and re-open your terminal 
+
+#First create a working enviroment for all the tools to be installed 
+
+conda create -n rna_seq
+
+#Activate your conda environment 
+
+conda activate rna_seq
+
+#Create a working directory and set the ‘RNA_HOME’ environment variable
+
+mkdir -p ~/workspace/rnaseq/
+
+export RNA_HOME=~/workspace/rnaseq
+
+#Make sure whatever the working dir is, that it is set and is valid
+
+echo $RNA_HOME
+
+#Since all the environment variables we set up for the RNA-seq workshop start with ‘RNA’ we can easily view them all by combined use of the env and grep commands as shown below. The env command shows all environment variables currently defined and the grep command identifies string matches.
+
+env | grep RNA
+
+#You can place the RNA_HOME variable (and other environment variables) in your .bashrc and then logout and login again to avoid having to worry about it.
+
+#In order to view the contents of this file, you can type:
+
+
+
+#To exit the file, type q
+
+#These are the needed environment for the worflow 
+
+export RNA_HOME=~/workspace/rnaseq
+export RNA_DATA_DIR=$RNA_HOME/data
+export RNA_DATA_TRIM_DIR=$RNA_DATA_DIR/trimmed
+export RNA_REFS_DIR=$RNA_HOME/refs
+export RNA_REF_INDEX=$RNA_REFS_DIR/chr22_with_ERCC92
+export RNA_REF_FASTA=$RNA_REF_INDEX.fa
+export RNA_REF_GTF=$RNA_REF_INDEX.gtf
+export RNA_ALIGN_DIR=$RNA_HOME/alignments/hisat2
+
+
+export PICARD=/home/ubuntu/bin/picard.jar
+
+#Make sure that we have all the environment variables created
+env | grep RNA
+
+#Make sure whatever the working dir is, that it is set and is valid
+
+echo $RNA_HOME
+
+
+
+#TOOLS INSTALLATION 
+
+#Set up tool installation location:
+
+cd $RNA_HOME
+mkdir student_tools
+cd student_tools
+
+
+#SAMtools
+
+cd $RNA_HOME/student_tools/
+wget https://github.com/samtools/samtools/releases/download/1.18/samtools-1.18.tar.bz2
+bunzip2 samtools-1.18.tar.bz2
+tar -xvf samtools-1.18.tar
+cd samtools-1.18
+make
+./samtools
+
+
+
+cd student_tools/
+wget https://github.com/arq5x/bedtools2/releases/download/v2.31.0/bedtools-2.31.0.tar.gz
+tar -zxvf bedtools-2.31.0.tar.gz
+cd bedtools2/
+make
+./bin/bedtools
+ 
+ 
+#bam-readcount
+
+cd $RNA_HOME/student_tools/
+export SAMTOOLS_ROOT=$RNA_HOME/student_tools/samtools-1.18
+git clone https://github.com/genome/bam-readcount 
+cd bam-readcount
+mkdir build
+cd build
+cmake ..   #if cmake is not installed please intall with conda or mamba... 
+./bin/bam-readcount
+
+
+
+#HISAT2
+
+uname -m
+cd $RNA_HOME/student_tools/
+curl -s https://cloud.biohpc.swmed.edu/index.php/s/oTtGWbWjaxsQ2Ho/download > hisat2-2.2.1-Linux_x86_64.zip
+unzip hisat2-2.2.1-Linux_x86_64.zip
+cd hisat2-2.2.1
+./hisat2 -h.   #troubleshoot if this does not work 
+
+
+#gffcompare
+
+cd $RNA_HOME/student_tools/
+wget http://ccb.jhu.edu/software/stringtie/dl/gffcompare-0.12.6.Linux_x86_64.tar.gz
+tar -xzvf gffcompare-0.12.6.Linux_x86_64.tar.gz
+cd gffcompare-0.12.6.Linux_x86_64/
+./gffcompare
+
+
+#htseq-count
+
+#For Linux... 
+sudo apt install python3-htseq
+
+#For MAC
+pip install HTSeq
+
+
+
+#TopHat
+#Installation type: dowload a precompiled binary. Citation: PMID: 19289445.
+
+#Note, this tool is currently only installed for the gtf_to_fasta tool used in kallisto section.
+
+cd $RNA_HOME/student_tools/
+wget http://genomedata.org/rnaseq-tutorial/tophat-2.1.1.Linux_x86_64.tar.gz
+tar -zxvf tophat-2.1.1.Linux_x86_64.tar.gz
+cd tophat-2.1.1.Linux_x86_64/
+./gtf_to_fasta
+
+
+#kallisto
+
+#Installation type: download a precompiled binary. Citation: PMID: 27043002.
+
+#The kallisto alignment free expression estimation tool is installed below simply by downloading an archive with wget, unpacking the archive with tar, and testing the binary to ensure it runs on our system.
+
+cd $RNA_HOME/student_tools/
+wget https://github.com/pachterlab/kallisto/releases/download/v0.44.0/kallisto_linux-v0.44.0.tar.gz
+tar -zxvf kallisto_linux-v0.44.0.tar.gz
+cd kallisto_linux-v0.44.0/
+./kallisto
+
+
+#FastQC
+
+#Installation type: download precompiled binary. Citation: s-andrews/FastQC.
+
+cd $RNA_HOME/student_tools/
+wget http://www.bioinformatics.babraham.ac.uk/projects/fastqc/fastqc_v0.11.9.zip
+unzip fastqc_v0.11.9.zip
+cd FastQC/
+chmod 755 fastqc
+./fastqc --help
+
+
+#Fastp
+#Installation type: download precompiled binary. Citation: PMID: 30423086
+
+cd $RNA_HOME/student_tools/
+mkdir fastp
+cd fastp
+wget http://opengene.org/fastp/fastp
+chmod a+x ./fastp
+./fastp
+
+
+#MultiQC
+#Installation type: use pip. Citation: PMID: 27312411.
+
+#Multiqc, a tool for assembling QC reports is a python package that can be installed using the python package manager pip.
+
+pip3 install multiqc
+export PATH=/home/ubuntu/.local/bin:$PATH
+multiqc --help
+
+#Picard
+#Installation type: download java jar file. Citation: broadinstitute/picard.
+
+#Picard is a rich tool kit for BAM file manipulation that is installed below simply by downloading a jar file. The jar file is tested using Java, a dependency that must also be installed (it should already be present in many systems).
+
+cd $RNA_HOME/student_tools/
+wget https://github.com/broadinstitute/picard/releases/download/2.26.4/picard.jar -O picard.jar
+java -jar $RNA_HOME/student_tools/picard.jar
+
+
+#RegTools
+#Installation type: compile from source code using cmake and make. Citation: bioRXiv: 10.1101/436634v2.
+
+cd $RNA_HOME/student_tools/
+git clone https://github.com/griffithlab/regtools
+cd regtools/
+mkdir build
+cd build/
+cmake ..
+make
+./regtools
+
+#RSeQC
+
+#Installation type: use pip. Citation: PMID: 22743226.
+
+pip3 install RSeQC
+read_GC.py
+
+#bedops
+#Installation type: download precompiled binary. Citation: PMID: 22576172.
+
+cd $RNA_HOME/student_tools/
+mkdir bedops_linux_x86_64-v2.4.41
+cd bedops_linux_x86_64-v2.4.41
+wget -c https://github.com/bedops/bedops/releases/download/v2.4.41/bedops_linux_x86_64-v2.4.41.tar.bz2
+tar -jxvf bedops_linux_x86_64-v2.4.41.tar.bz2
+./bin/bedops
+
+
+#gtfToGenePred
+#Installation type: download precompiled binary.
+
+cd $RNA_HOME/student_tools/
+mkdir gtfToGenePred
+cd gtfToGenePred
+wget -c http://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/gtfToGenePred
+chmod a+x gtfToGenePred
+./gtfToGenePred
+
+#genePredToBed
+#Installation type: download precompiled binary.
+
+cd $RNA_HOME/student_tools/
+mkdir genePredToBed
+cd genePredToBed
+wget -c http://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/genePredToBed
+chmod a+x genePredToBed
+./genePredToBed
+
+#how_are_we_stranded_here
+
+pip3 install git+https://github.com/kcotto/how_are_we_stranded_here.git
+
+check_strandedness
+
+
+#Install Cell Ranger
+#Must register to get download link, modify command below to match downloaded tar
+
+cd $RNA_HOME/student_tools/
+wget `download_link`
+tar -xzvf cellranger-7.2.0.tar.gz
+
+#Install R
+
+#Obtain a reference genome from Ensembl, iGenomes, NCBI or UCSC.
+#In this example analysis we will use the human GRCh38 version of the genome from Ensembl. Furthermore, we are actually going to perform the analysis using only a single chromosome (chr22) and the ERCC spike-in to make it run faster.
