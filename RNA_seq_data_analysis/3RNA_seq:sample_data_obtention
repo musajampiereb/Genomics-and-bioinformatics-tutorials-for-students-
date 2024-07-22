@@ -1,0 +1,77 @@
+ ##############################
+ ## Obtain RNA-seq test data ##
+ ##############################
+ 
+ 
+#So to summarize we have:
+
+#UHR + ERCC Spike-In Mix1, Replicate 1
+#UHR + ERCC Spike-In Mix1, Replicate 2
+#UHR + ERCC Spike-In Mix1, Replicate 3
+#HBR + ERCC Spike-In Mix2, Replicate 1
+#HBR + ERCC Spike-In Mix2, Replicate 2
+#HBR + ERCC Spike-In Mix2, Replicate 3
+
+#Each data set has a corresponding pair of FASTQ files (read 1 and read 2 of paired end reads).
+
+echo $RNA_DATA_DIR
+mkdir -p $RNA_DATA_DIR
+cd $RNA_DATA_DIR
+wget http://genomedata.org/rnaseq-tutorial/HBR_UHR_ERCC_ds_5pc.tar
+ 
+#Unpack the test data using tar. You should see 6 sets of paired end fastq files. One for each of our sample replicates above. We have 6 pairs (12 files) because in fastq format, read 1 and read 2 of a each read pair (fragment) are stored in separate files.
+
+tar -xvf HBR_UHR_ERCC_ds_5pc.tar
+ls
+ 
+
+#Enter the data directory and view the first two read records of a file (in fastq format each read corresponds to 4 lines of data)
+
+#The reads are paired-end 101-mers generated on an Illumina HiSeq instrument. The test data has been pre-filtered for reads that appear to map to chromosome 22. Lets copy the raw input data to our tutorial working directory.
+
+zcat UHR_Rep1_ERCC-Mix1_Build37-ErccTranscripts-chr22.read1.fastq.gz | head -n 8 #use gunzip -c for MAC 
+
+#Identify the following components of each read: read name, read sequence, and quality string
+
+#How many reads are there in the first library? Decompress file on the fly with ‘zcat’, pipe into ‘grep’, search for the read name prefix and pipe into ‘wc’ to do a word count (‘-l’ gives lines)
+
+zcat UHR_Rep1_ERCC-Mix1_Build37-ErccTranscripts-chr22.read1.fastq.gz | grep -P "^\@HWI" | wc -l  #use gunzip -c for MAC 
+
+
+#Determining the strandedness of RNA-seq data (Optional)
+########################################################
+
+#In order to determine strandedness, we will be using check_strandedness(docker image). In order use this tool, there are a few steps we need to get our inputs ready, specifically creating a fasta of our GTF file.
+
+cd $RNA_HOME/refs/
+
+# Convert Gtf to genePred
+gtfToGenePred chr22_with_ERCC92.gtf chr22_with_ERCC92.genePred
+
+# Convert genPred to bed12
+genePredToBed chr22_with_ERCC92.genePred chr22_with_ERCC92.bed12
+
+# Use bedtools to create fasta from GTF
+bedtools getfasta -fi chr22_with_ERCC92.fa -bed chr22_with_ERCC92.bed12 -s -split -name -fo chr22_ERCC92_transcripts.fa
+
+#Use less to view the file chr22_ERCC92_transcripts.fa. Note that this file has messy transcript names. Use the following hairball perl one-liner to tidy up the header line for each fasta sequence.
+
+cd $RNA_HOME/refs
+cat chr22_ERCC92_transcripts.fa | perl -ne 'if($_ =~/^\>\S+\:\:(ERCC\-\d+)\:.*/){print ">$1\n"}elsif ($_ =~/^\>(\S+)\:\:.*/){print ">$1\n"}else{print $_}' > chr22_ERCC92_transcripts.clean.fa
+
+#View the resulting ‘clean’ file using less chr22_ERCC92_transcripts.clean.fa (use ‘q’ to exit). View the end of this file using tail chr22_ERCC92_transcripts.clean.fa. Note that we have one fasta record for each Ensembl transcript on chromosome 22 and we have an additional fasta record for each ERCC spike-in sequence.
+
+#We also need to reformat our GTF file slightly. Rows that correspond to genes are missing the “transcript_id” field. We are going to add in this field but leave it blank for these rows using the following command.
+
+cd $RNA_HOME/refs
+awk '{ if ($0 ~ "transcript_id") print $0; else print $0" transcript_id \"\";"; }' chr22_with_ERCC92.gtf > chr22_with_ERCC92_tidy.gtf
+
+#Now that we have created our input files, we can now run the check_strandedness tool on some of our instrument data. Note: we are using a docker image for this tool.
+
+docker run -v /home/ubuntu/workspace/rnaseq:/docker_workspace mgibio/checkstrandedness:latest check_strandedness --gtf /docker_workspace/refs/chr22_with_ERCC92_tidy.gtf --transcripts /docker_workspace/refs/chr22_ERCC92_transcripts.clean.fa --reads_1 /docker_workspace/data/HBR_Rep1_ERCC-Mix2_Build37-ErccTranscripts-chr22.read1.fastq.gz --reads_2 /docker_workspace/data/HBR_Rep1_ERCC-Mix2_Build37-ErccTranscripts-chr22.read2.fastq.gz
+
+#docker run is how you initialize a docker container to run a command
+
+#-v is the parameter used to mount your workspace so that the docker container can see the files that you’re working with. In the example above, /home/ubuntu/workspace/rnaseq from the EC2 instance has been mounted as /docker_workspace within the docker container.
+
+#mgibio/checkstrandedness is the docker container name. The :latest refers to the specific tag and release of the docker container.
