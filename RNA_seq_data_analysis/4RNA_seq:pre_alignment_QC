@@ -1,0 +1,52 @@
+######################
+## Pre-alignment QC ##
+######################
+
+
+#Try to run FastQC on your fastq files:
+
+cd $RNA_HOME/data
+fastqc *.fastq.gz
+
+
+#Fastp
+#Fastp is a similar alternative tool. QC results for this tool can be produced as follows
+
+cd $RNA_HOME/data
+mkdir fastp
+cd fastp
+
+mkdir HBR_Rep1 HBR_Rep2 HBR_Rep3 UHR_Rep1 UHR_Rep2 UHR_Rep3
+
+cd $RNA_HOME/data/fastp/HBR_Rep1
+fastp -i $RNA_HOME/data/HBR_Rep1_ERCC-Mix2_Build37-ErccTranscripts-chr22.read1.fastq.gz -I $RNA_HOME/data/HBR_Rep1_ERCC-Mix2_Build37-ErccTranscripts-chr22.read2.fastq.gz
+
+cd $RNA_HOME/data/fastp/HBR_Rep2
+fastp -i $RNA_HOME/data/HBR_Rep2_ERCC-Mix2_Build37-ErccTranscripts-chr22.read1.fastq.gz -I $RNA_HOME/data/HBR_Rep2_ERCC-Mix2_Build37-ErccTranscripts-chr22.read2.fastq.gz
+
+cd $RNA_HOME/data/fastp/HBR_Rep3
+fastp -i $RNA_HOME/data/HBR_Rep3_ERCC-Mix2_Build37-ErccTranscripts-chr22.read1.fastq.gz -I $RNA_HOME/data/HBR_Rep3_ERCC-Mix2_Build37-ErccTranscripts-chr22.read2.fastq.gz
+
+cd $RNA_HOME/data/fastp/UHR_Rep1
+fastp -i $RNA_HOME/data/UHR_Rep1_ERCC-Mix1_Build37-ErccTranscripts-chr22.read1.fastq.gz -I $RNA_HOME/data/UHR_Rep1_ERCC-Mix1_Build37-ErccTranscripts-chr22.read1.fastq.gz
+
+cd $RNA_HOME/data/fastp/UHR_Rep2
+fastp -i $RNA_HOME/data/UHR_Rep2_ERCC-Mix1_Build37-ErccTranscripts-chr22.read1.fastq.gz -I $RNA_HOME/data/UHR_Rep2_ERCC-Mix1_Build37-ErccTranscripts-chr22.read1.fastq.gz
+
+cd $RNA_HOME/data/fastp/UHR_Rep3
+fastp -i $RNA_HOME/data/UHR_Rep3_ERCC-Mix1_Build37-ErccTranscripts-chr22.read1.fastq.gz -I $RNA_HOME/data/UHR_Rep3_ERCC-Mix1_Build37-ErccTranscripts-chr22.read1.fastq.gz
+
+
+#MultiQC
+#Run MultiQC on your fastqc reports to generate a single summary report across all samples/replicates.
+
+cd $RNA_HOME/data
+multiqc ./
+
+
+#Clean up
+#Move all the FASTQC files into their own directory
+
+cd $RNA_HOME/data
+mkdir fastqc
+mv *_fastqc* fastqc
