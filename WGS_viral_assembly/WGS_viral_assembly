@@ -1,0 +1,93 @@
+#!/bin/bash
+###############################################################
+## whole Genome Sequence Assembly pipelines for viral genome ##
+###############################################################
+
+#Step 1: Navigate to the working directory and concatenate FASTQ files
+
+
+# Navigate to the working directory
+cd /Users/JeanPierre/Documents/Bioinformatics/barcode25
+
+# Concatenate all FASTQ files into one file
+cat *.fastq.gz > all_reads.fastq
+
+#Step 2: Organize raw data
+
+# Create a directory for raw data and move the original FASTQ files there
+mkdir raw
+mv *.fastq.gz raw
+
+#Step 3: Trim adapters from the first end
+
+# Trim adapters from the first end of the reads
+cutadapt -u 30 -o all_reads_QC.fastq all_reads.fastq
+
+#Step 4: Trim adapters from the other end
+
+# Trim adapters from the other end of the reads
+cutadapt -u -30 -o all_reads_QC2.fastq all_reads_QC.fastq
+
+#Step 5: Align reads to the reference genome using minimap2 and generate SAM file
+
+# Align reads to the reference genome and generate SAM file
+minimap2 -Y -t 12 -x map-ont -a /Users/JeanPierre/Documents/Bioinformatics/barcode25/SARS_Cov2_refs/GCA_009858895.3.fasta all_reads_QC2.fastq > all_reads.sam
+
+#Step 6: Sort the SAM file
+
+# Sort the SAM file
+samtools sort -O SAM -o all_reads_sorted.sam all_reads.sam
+
+#Step 7: Convert SAM to BAM and sort
+
+# Convert SAM to BAM and sort the BAM file
+samtools view -bS all_reads_sorted.sam | samtools sort -@ 16 -o all_reads.bam
+
+#Step 8: Index the BAM file
+
+# Index the BAM file
+samtools index all_reads.bam
+
+#Step 9: Create a depth profile
+
+# Create a depth profile of the aligned reads
+samtools mpileup -a -A -Q 0 -d 0 -f /Users/JeanPierre/Documents/Bioinformatics/NRL_SARS_CoV2/SARS_Cov2_refs/GCA_009858895.3.fasta all_reads.bam | awk '{print $2","$3","$4}' > all_reads.depth
+
+#Step 10: Variant calling
+
+# Call variants using bcftools
+bcftools mpileup -f /Users/JeanPierre/Documents/Bioinformatics/barcode25/SARS_Cov2_refs/GCA_009858895.3.fasta all_reads.bam | bcftools call -mv -Oz -o all_reads.vcf.gz
+
+#Step 11: Filter the VCF file
+
+# Filter the VCF file using bcftools
+bcftools filter -i 'DP>20 && AF>0.1' all_reads.vcf.gz -Oz -o all_reads_filtered.vcf.gz
+
+#Step 12: Create a consensus sequence
+
+
+# Index the reference genome
+samtools faidx /Users/JeanPierre/Documents/Bioinformatics/NRL_SARS_CoV2/barcode25/SARS_Cov2_refs/GCA_009858895.3.fasta
+
+# Generate consensus sequence with bcftools consensus
+bcftools consensus -f /Users/JeanPierre/Documents/Bioinformatics/barcode25/SARS_Cov2_refs/GCA_009858895.3.fasta all_reads_filtered.vcf.gz > all_reads_consensus_temp.fasta
+
+# Incorporate depth profile into the consensus sequence
+awk -F, -v depth_file=all_reads.depth 'BEGIN {
+  while ((getline < depth_file) > 0) {
+    depth[$1] = $3
+  }
+}
+{
+  if (/^>/) {
+    print $0
+  } else {
+    seq = $0
+    for (i = 1; i <= length(seq); i++) {
+      if (depth[i] < 20) {
+        seq = substr(seq, 1, i-1) "N" substr(seq, i+1)
+      }
+    }
+    print seq
+  }
+}' all_reads_consensus_temp.fasta > all_reads_consensus.fasta
