@@ -1,0 +1,224 @@
+#!/bin/bash
+
+
+###############################################################
+## whole Genome Sequence Assembly pipelines for viral genome ##
+###############################################################
+
+#INstall required packages 
+
+sudo apt-get update
+sudo apt-get install gcc
+sudo apt-get install make
+sudo apt-get install libbz2-dev
+sudo apt-get install zlib1g-dev
+sudo apt-get install libncurses5-dev 
+sudo apt-get install libncursesw5-dev
+sudo apt-get install liblzma-dev
+
+
+#INSTALLING CONDA IF YOU HAVE NOT DONE SO BEFORE#
+
+#Conda is a packaging manager that will help us to install bioinformatics tools and to handle their dependencies automatically
+
+#In the terminal enter:
+###############################################################
+
+wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh  #this downloadds the conda installer 
+
+# Run conda installer
+
+bash Miniconda3-latest-Linux-x86_64.sh
+
+# Use space to scroll down the license agreement
+# then type 'yes'
+# accept the default install location with ENTER
+# when asked whether to initialize Miniconda3 type 'yes'
+# ATTENTION: the space in your home directory might be limited (e.g. 10 GB) and per default conda installs tools into ~/.conda/envs
+# Thus, take care of your disk space, if necessary (e.g. on a high-performance cluster)! 
+
+# Now start a new shell or simply reload your current shell via
+
+bash
+
+# You should now be able to create environments, install tools and run them
+
+#Set up conda
+##############################################################
+
+# add repository channels for bioconda
+conda config --add channels defaults
+conda config --add channels bioconda
+conda config --add channels conda-forge
+
+#Create and activate a new conda environment
+###############################################################
+
+# -n parameter to specify the name of your environment
+conda create -n bioinformatics #This installs the environment for you to run the genome assembly pipelines
+
+# activate this environment
+conda activate bioinformatics 
+
+# You should now see (nanoplot) at the start of each line.
+# You switched from the default 'base' environment to the 'nanoplot' environment.
+#Close and re-open your terminal 
+
+#First create a working enviroment for all the tools to be installed 
+
+
+
+#Create a working directory and set the ‘WGS_HOME’ environment variable
+
+mkdir -p ~/workspace/bioinformatics/
+
+export WGS_HOME=~/workspace/bioinformatics
+
+#Make sure whatever the working dir is, that it is set and is valid
+
+echo $WGS_HOME
+
+#Since all the environment variables we set up for the RNA-seq workshop start with ‘RNA’ we can easily view them all by combined use of the env and grep commands as shown below. The env command shows all environment variables currently defined and the grep command identifies string matches.
+
+env | grep WGS
+
+#You can place the RNA_HOME variable (and other environment variables) in your .bashrc and then logout and login again to avoid having to worry about it.
+
+#In order to view the contents of this file, you can type:
+
+
+
+#To exit the file, type q
+
+#These are the needed environment for the worflow 
+
+export WGS_HOME=~/workspace/bioinformatics
+export WGS_DATA_DIR=$WGS_HOME/data
+export WGS_DATA_TRIM_DIR=$WGS_DATA_DIR/trimmed
+export WGS_REFS_DIR=$WGS_HOME/refs
+export WGS_REF_INDEX=$WGS_REFS_DIR/mpox_ref
+export WGS_REF_FASTA=$WGS_REF_INDEX.fa
+export WGS_REF_GTF=$WGS_REF_INDEX.gtf
+export WGS_ALIGN_DIR=$WGS_HOME/alignments/minimap2
+
+
+export PICARD=/home/ubuntu/bin/picard.jar
+
+#Make sure that we have all the environment variables created
+env | grep RNA
+
+#Make sure whatever the working dir is, that it is set and is valid
+
+echo $WGS_HOME
+
+
+
+#TOOLS INSTALLATION 
+
+#Set up tool installation location:
+
+cd $WGS_HOME
+mkdir student_tools
+cd student_tools
+
+
+#NanoPlot 
+
+conda install nanoplot
+# test the tool you just installed
+NanoPlot --help
+
+
+#SAMtools
+
+cd $WGS_HOME/student_tools/
+wget https://github.com/samtools/samtools/releases/download/1.18/samtools-1.18.tar.bz2
+bunzip2 samtools-1.18.tar.bz2
+tar -xvf samtools-1.18.tar
+cd samtools-1.18
+make
+./samtools
+
+
+#Bedtools 
+cd student_tools/
+wget https://github.com/arq5x/bedtools2/releases/download/v2.31.0/bedtools-2.31.0.tar.gz
+tar -zxvf bedtools-2.31.0.tar.gz
+cd bedtools2/
+make
+./bin/bedtools
+ 
+ 
+#bam-readcount
+
+cd $WGS_HOME/student_tools/
+export SAMTOOLS_ROOT=$WGS_HOME/student_tools/samtools-1.18
+git clone https://github.com/genome/bam-readcount 
+cd bam-readcount
+mkdir build
+cd build
+cmake ..   #if cmake is not installed please intall with conda or mamba... 
+./bin/bam-readcount
+
+
+#Minimap2
+
+uname -m
+cd $WGS_HOME/student_tools/
+curl -s https://cloud.biohpc.swmed.edu/index.php/s/oTtGWbWjaxsQ2Ho/download > hisat2-2.2.1-Linux_x86_64.zip
+unzip hisat2-2.2.1-Linux_x86_64.zip
+cd hisat2-2.2.1
+./hisat2 -h.   #troubleshoot if this does not work 
+
+#BCFTools 
+
+cd $WGS_HOME/student_tools/
+wget https://github.com/samtools/bcftools/releases/download/1.9/bcftools-1.9.tar.bz2
+tar -vxjf bcftools-1.9.tar.bz2
+cd bcftools-1.9
+make
+
+
+#FastQC
+
+#Installation type: download precompiled binary. Citation: s-andrews/FastQC.
+
+cd $WGS_HOME/student_tools/
+wget http://www.bioinformatics.babraham.ac.uk/projects/fastqc/fastqc_v0.11.9.zip
+unzip fastqc_v0.11.9.zip
+cd FastQC/
+chmod 755 fastqc
+./fastqc --help
+
+
+#Fastp
+#Installation type: download precompiled binary. Citation: PMID: 30423086
+
+cd $WGS_HOME/student_tools/
+mkdir fastp
+cd fastp
+wget http://opengene.org/fastp/fastp
+chmod a+x ./fastp
+./fastp
+
+
+#MultiQC
+#Installation type: use pip. Citation: PMID: 27312411.
+
+#Multiqc, a tool for assembling QC reports is a python package that can be installed using the python package manager pip.
+
+pip3 install multiqc
+export PATH=/home/ubuntu/.local/bin:$PATH
+multiqc --help
+
+#Picard
+#Installation type: download java jar file. Citation: broadinstitute/picard.
+
+#Picard is a rich tool kit for BAM file manipulation that is installed below simply by downloading a jar file. The jar file is tested using Java, a dependency that must also be installed (it should already be present in many systems).
+
+cd $WGS_HOME/student_tools/
+wget https://github.com/broadinstitute/picard/releases/download/2.26.4/picard.jar -O picard.jar
+java -jar $WGS_HOME/student_tools/picard.jar
+
+
+
