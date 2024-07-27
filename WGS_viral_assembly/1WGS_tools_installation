@@ -18,11 +18,11 @@ sudo apt-get install liblzma-dev
 
 
 #INSTALLING CONDA IF YOU HAVE NOT DONE SO BEFORE#
+###################################################
 
 #Conda is a packaging manager that will help us to install bioinformatics tools and to handle their dependencies automatically
 
 #In the terminal enter:
-###############################################################
 
 wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh  #this downloadds the conda installer 
 
