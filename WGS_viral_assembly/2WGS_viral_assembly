@@ -4,17 +4,23 @@
 ###############################################################
 
 #NOTE: This assignment is built on the already published raw data from the MPOX oubreak in Kamituga, South Kivu
+# You may be able to access the publication by following the link: https://www.eurosurveillance.org/content/10.2807/1560-7917.ES.2024.29.11.2400106 
 
 #Step 0: Let us get the rawdata to use 
+#The raw data is hosted at the EMBL institute, and you can download it to your local linux system using 'wget' function
 
+#Let us first make sure we are in the data directory 
+
+cd $WGS_HOME/data
+wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR126/001/ERR12670101/ERR12670101.fastq.gz
+wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR126/004/ERR12670104/ERR12670104.fastq.gz 
+wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR126/005/ERR12670105/ERR12670105.fastq.gz
 
 #Step 1: Navigate to the working directory and concatenate FASTQ files
 
 #navigate to the working directory for data storage and manipulation 
 cd $WGS_HOME/data
-wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR126/001/ERR12670101/ERR12670101.fastq.gz
-wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR126/004/ERR12670104/ERR12670104.fastq.gz 
-wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR126/005/ERR12670105/ERR12670105.fastq.gz
+
 
 # Navigate to the working directory
 cd $WGS_HOME/data
