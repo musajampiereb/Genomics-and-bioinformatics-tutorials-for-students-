@@ -3,11 +3,21 @@
 ## whole Genome Sequence Assembly pipelines for viral genome ##
 ###############################################################
 
+#NOTE: This assignment is built on the already published raw data from the MPOX oubreak in Kamituga, South Kivu
+
+#Step 0: Let us get the rawdata to use 
+
+
 #Step 1: Navigate to the working directory and concatenate FASTQ files
 
+#navigate to the working directory for data storage and manipulation 
+cd $WGS_HOME/data
+wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR126/001/ERR12670101/ERR12670101.fastq.gz
+wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR126/004/ERR12670104/ERR12670104.fastq.gz 
+wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR126/005/ERR12670105/ERR12670105.fastq.gz
 
 # Navigate to the working directory
-cd /Users/JeanPierre/Documents/Bioinformatics/barcode25
+cd $WGS_HOME/data
 
 # Concatenate all FASTQ files into one file
 cat *.fastq.gz > all_reads.fastq
