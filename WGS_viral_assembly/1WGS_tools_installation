@@ -105,7 +105,7 @@ export WGS_ALIGN_DIR=$WGS_HOME/alignments/minimap2
 export PICARD=/home/ubuntu/bin/picard.jar
 
 #Make sure that we have all the environment variables created
-env | grep RNA
+env | grep WGS
 
 #Make sure whatever the working dir is, that it is set and is valid
 
