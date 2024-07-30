@@ -7,14 +7,16 @@
 # You may be able to access the publication by following the link: https://www.eurosurveillance.org/content/10.2807/1560-7917.ES.2024.29.11.2400106 
 
 #Step 0: Let us get the raw data to use 
-#The raw data is hosted at the EMBL institute, and you can download it to your local linux system using 'wget' function 
+
 
 #Let us first make sure we are in the data directory
 echo $WGS_HOME
 cd $WGS_HOME/data
 pwd
 
-#Then we can start downloading the data... 
+#Then we can start downloading the data... NOTE: you can download only one of the 3 provided options and carry on till the end
+#The raw data is hosted at the EMBL institute, and you can download it to your local linux system using 'wget' function 
+
 wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR126/001/ERR12670101/ERR12670101.fastq.gz
 wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR126/004/ERR12670104/ERR12670104.fastq.gz 
 wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR126/005/ERR12670105/ERR12670105.fastq.gz
