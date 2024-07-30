@@ -82,15 +82,9 @@ echo $WGS_HOME
 
 env | grep WGS
 
-#You can place the RNA_HOME variable (and other environment variables) in your .bashrc and then logout and login again to avoid having to worry about it.
+#You can place the WGS_HOME variable (and other environment variables) in your .bashrc and then logout and login again to avoid having to worry about it.
 
-#In order to view the contents of this file, you can type:
-
-
-
-#To exit the file, type q
-
-#These are the needed environment for the worflow 
+#You can then create other variables which will host your needed directories in the workflow
 
 export WGS_HOME=~/workspace/bioinformatics
 export WGS_DATA_DIR=$WGS_HOME/data
