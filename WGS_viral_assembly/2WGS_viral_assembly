@@ -3,15 +3,21 @@
 ## whole Genome Sequence Assembly pipelines for viral genome ##
 ###############################################################
 
-#NOTE: This assignment is built on the already published raw data from the MPOX oubreak in Kamituga, South Kivu
+#NOTE: This assignment is built on the already published raw data from the MPOX outbreak in Kamituga, South Kivu
 # You may be able to access the publication by following the link: https://www.eurosurveillance.org/content/10.2807/1560-7917.ES.2024.29.11.2400106 
 
 #Step 0: Let us get the raw data to use 
 
+#First we will create the necessary working directory.
 
-#Let us first make sure we are in the data directory
-echo $WGS_HOME
-cd $WGS_HOME/data
+cd $WGS_HOME
+echo $WGS_DATA_DIR
+mkdir -p $WGS_DATA_DIR
+
+#Let us go change the directory (cd) and go to the created data directory 
+cd $WGS_DATA_DIR
+
+#Now check which directory you are in. The terminal should show that you are in the data directory 
 pwd
 
 #Then we can start downloading the data... NOTE: you can download only one of the 3 provided options and carry on till the end
@@ -23,7 +29,7 @@ wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR126/005/ERR12670105/ERR12670105.fastq
 
 #Step 1: Navigate to the working directory and concatenate FASTQ files
 
-cd $WGS_HOME/data
+cd $WGS_HOME/data/
 
 # Concatenate all FASTQ files into one file
 cat *.fastq.gz > all_reads.fastq
