@@ -8,19 +8,26 @@
 
 #Step 0: Let us get the raw data to use 
 
-#First we will create the necessary working directory.
+#First we will create the necessary working directory for rw data.
 
 cd $WGS_HOME
 echo $WGS_DATA_DIR
 mkdir -p $WGS_DATA_DIR
+mkdir -p $WGS_REFS_DIR
 
-#Let us go change the directory (cd) and go to the created data directory 
+#Let us change the directory (cd) and go to the created data directory for raw data
 cd $WGS_DATA_DIR
 
 #Now check which directory you are in. The terminal should show that you are in the data directory 
 pwd
 
-#Step 1: Make sure you are in the right directory and download the raw data (FASTQ files)
+#Step 1: Download raw data and the reference genome in their respective directories
+#########################################################################################
+
+#Let us change the directory (cd) and go to the created data directory for raw data
+cd $WGS_DATA_DIR
+
+#Make sure you are in the right directory and download the raw data (FASTQ files)
 
 cd $WGS_HOME/data/
 
@@ -31,35 +38,93 @@ wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR126/001/ERR12670101/ERR12670101.fastq
 wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR126/004/ERR12670104/ERR12670104.fastq.gz
 wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR126/005/ERR12670105/ERR12670105.fastq.gz
 
-# If you get more Concatenate all FASTQ files into one file
-cat *.fastq.gz > all_reads.fastq
+# Unzip the file to be able to inspect it 
+gunzip *.fastq.gz
+
+ls #check how many files you have in your folder 
 
 #QUESTION 1: inspect the file and describe which type of file it is and its relatively important characteristics. 
 #            How many reads do we have in that file?
 #            You can use the command bellow to count how many reads are there: 
 
-grep -o '@ERR12670' ERR12670104.fastq | wc -l #How many reads are they? 
+grep -o '@ERR12670' ERR12670104.fastq | wc -l    #How many reads are they? 
+
+#Rename your FASTQ file to easily follow the next steps...
+cp ERR12670104.fastq all_reads.fastq
+
+#Let us change the directory (cd) and go to the created directory for reference sequence
+
+cd $WGS_REFS_DIR
+
+#use the 'wget' function to download the reference format 
+
+wget https://www.ebi.ac.uk/ena/browser/api/fasta/JX878425.1?download=true > mpox_ref.fasta
 
 
-#Step 2: Organize raw data
 
-# Create a directory for raw data and move the original FASTQ files there
-mkdir raw
-mv *.fastq.gz raw
+#Step 2: Quality Control (QC) check using NanoPlot
+##################################################
 
-#Step 3: Trim adapters from the first end
+#Create the directory to store quality data
+cd $WGS_HOME
+echo $WGS_DATA_TRIM_DIR
+mkdir -p $WGS_DATA_TRIM_DIR
 
-# Trim adapters from the first end of the reads
-cutadapt -u 30 -o all_reads_QC.fastq all_reads.fastq
+#Run the command below ensuring that the right <FILE NAME> is provided 
 
-#Step 4: Trim adapters from the other end
+nanoplot --fastq all_reads.fastq -o $WGS_DATA_TRIM_DIR
+
+#Go to the $WGS_DATA_TRIM_DIR directory and open the generated files to understand the quality status 
+
+#Step 3: Data filtering based on quality score Q() using fastp
+##############################################################
+
+fastp -i all_reads.fastq -o $WGS_DATA_TRIM_DIR/all_reads_QC.fastq -q 9 -Q
+
+#QUESTION 3: Please report the values below, from the data you find: 
+#total reads: ____________
+#total bases: _____________
+#Q20 bases: ____________%____
+#Q30 bases: ____________%______
+
+#Read1 after filtering:
+#total reads:_________
+#total bases: __________
+#Q20 bases: _________%_________
+#Q30 bases: __________%________
+
+#Filtering result:_____________
+#reads passed filter: _________________
+#reads failed due to low quality:________
+#reads failed due to too many N: __________
+#reads failed due to too short:_______________
+#reads with adapter trimmed: ____________
+#bases trimmed due to adapters:_______________
+
+#Step 4: Trim adapters from the first and the last end
+######################################################
+
+#Check if the cutadapt tool is installed and if not install using the command bellow: 
+
+sudo apt install cutadapt
+
+#Trim adapters from the first end of the reads
+
+cutadapt -u 30 -o $WGS_DATA_TRIM_DIR/all_reads_QC1.fastq $WGS_DATA_TRIM_DIR/all_reads_QC.fastq
 
 # Trim adapters from the other end of the reads
-cutadapt -u -30 -o all_reads_QC2.fastq all_reads_QC.fastq
+
+cutadapt -u -30 -o $WGS_DATA_TRIM_DIR/all_reads_QC2.fastq $WGS_DATA_TRIM_DIR/all_reads_QC1.fastq
+
+QUESTION 4: Compare Total basepairs processed in both 'cutadapt' steps. Are they the same or different? Why? 
+
 
 #Step 5: Align reads to the reference genome using minimap2 and generate SAM file
+#################################################################################
 
-# Align reads to the reference genome and generate SAM file
+echo $WGS_HOME
+
+# Align reads to the reference genome by providing the right PATH to your data and the reference and generate SAM file
 minimap2 -Y -t 12 -x map-ont -a /Users/JeanPierre/Documents/Bioinformatics/barcode25/SARS_Cov2_refs/GCA_009858895.3.fasta all_reads_QC2.fastq > all_reads.sam
 
 #Step 6: Sort the SAM file
