@@ -44,7 +44,7 @@ gunzip *.fastq.gz
 
 ls #check how many files you have in your folder 
 
-#QUESTION 1: inspect the file and describe which type of file it is and its relatively important characteristics. 
+#QUESTION 1A: inspect the file and describe which type of file it is and its relatively important characteristics. 
 #            How many reads do we have in that file?
 #            You can use the command bellow to count how many reads are there: 
 
@@ -63,6 +63,10 @@ wget https://www.ebi.ac.uk/ena/browser/api/fasta/JX878425.1?download=true > mpox
 
 mkdir -p $WGS_REF_FASTA
 
+#QUESTION 1B: What is the size of the reference genome in terms of number of nucleotides?
+#             Which file type is that and how is it different from the FASTQ file? 
+#             Does this file contain annotation data? what kind of file would you need if you need the annotation information? 
+
 #Step 2: Quality Control (QC) check using NanoPlot
 ##################################################
 
@@ -76,6 +80,15 @@ mkdir -p $WGS_DATA_TRIM_DIR
 nanoplot --fastq all_reads.fastq -o $WGS_DATA_TRIM_DIR
 
 #Go to the $WGS_DATA_TRIM_DIR directory and open the generated files to understand the quality status 
+
+#QUESTION 2: Go to the output directory and describe the following: 
+#            Mean read length: ____________
+#            Mean read quality: ___________
+#            Median read length: __________
+#            Median read quality:__________
+#            Number of reads: _____________
+#            Read length N50: _____________
+#            Total bases: _________________
 
 #Step 3: Data filtering based on quality score Q() using fastp
 ##############################################################
