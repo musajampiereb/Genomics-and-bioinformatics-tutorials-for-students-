@@ -18,6 +18,7 @@ mkdir -p $WGS_REFS_DIR
 #Let us change the directory (cd) and go to the created data directory for raw data
 cd $WGS_DATA_DIR
 
+
 #Now check which directory you are in. The terminal should show that you are in the data directory 
 pwd
 
@@ -124,11 +125,20 @@ QUESTION 4: Compare Total basepairs processed in both 'cutadapt' steps. Are they
 #Step 5: Align reads to the reference genome using minimap2 and generate SAM file
 #################################################################################
 
+#We need to make sure that we are in the right directories 
 echo $WGS_HOME
-cd $WGS_TRIM_DIR
+We will create the directory to save alignment data
+mkdir -p $WGS_ALIGN_DIR
+cd $WGS_ALIGN_DIR
 
 # Align reads to the reference genome by providing the right PATH to your data and the reference and generate SAM file
 minimap2 -Y -t 12 -x map-ont -a $WGS_REF_FASTA $WGS_DATA_TRIM_DIR/all_reads_QC2.fastq > all_reads.sam
+
+#QUESTION 5: Inspect and describe the obtained SAM file, and answer to the following questions: 
+#            What are the characteristic features of SAM file? 
+#            using the head function try to describe the obtained sam file using the key features
+#            
+
 
 #Step 6: Sort the SAM file
 ############################
@@ -136,10 +146,15 @@ minimap2 -Y -t 12 -x map-ont -a $WGS_REF_FASTA $WGS_DATA_TRIM_DIR/all_reads_QC2.
 # Sort the SAM file
 samtools sort -O SAM -o all_reads_sorted.sam all_reads.sam
 
+#QUESTION: using the generated sorted sam file as an example, why do we need to sort the SAM file? 
+
 #Step 7: Convert SAM to BAM and sort
 
 # Convert SAM to BAM and sort the BAM file
 samtools view -bS all_reads_sorted.sam | samtools sort -@ 16 -o all_reads.bam
+
+
+#QUESTION 7: WHat is the main difference between SAM and BAM files? Why is the conversion of SAM to BAM important? 
 
 #Step 8: Index the BAM file
 
