@@ -20,19 +20,26 @@ cd $WGS_DATA_DIR
 #Now check which directory you are in. The terminal should show that you are in the data directory 
 pwd
 
+#Step 1: Make sure you are in the right directory and download the raw data (FASTQ files)
+
+cd $WGS_HOME/data/
+
 #Then we can start downloading the data... NOTE: you can download only one of the 3 provided options and carry on till the end
 #The raw data is hosted at the EMBL institute, and you can download it to your local linux system using 'wget' function 
 
 wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR126/001/ERR12670101/ERR12670101.fastq.gz
-wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR126/004/ERR12670104/ERR12670104.fastq.gz 
+wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR126/004/ERR12670104/ERR12670104.fastq.gz
 wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR126/005/ERR12670105/ERR12670105.fastq.gz
 
-#Step 1: Navigate to the working directory and concatenate FASTQ files
-
-cd $WGS_HOME/data/
-
-# Concatenate all FASTQ files into one file
+# If you get more Concatenate all FASTQ files into one file
 cat *.fastq.gz > all_reads.fastq
+
+#QUESTION 1: inspect the file and describe which type of file it is and its relatively important characteristics. 
+#            How many reads do we have in that file?
+#            You can use the command bellow to count how many reads are there: 
+
+grep -o '@ERR12670' ERR12670104.fastq | wc -l #How many reads are they? 
+
 
 #Step 2: Organize raw data
 
