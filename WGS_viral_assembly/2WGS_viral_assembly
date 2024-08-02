@@ -58,9 +58,9 @@ cd $WGS_REFS_DIR
 
 #use the 'wget' function to download the reference format 
 
-wget https://www.ebi.ac.uk/ena/browser/api/fasta/JX878425.1?download=true > mpox_ref.fasta
+wget https://www.ebi.ac.uk/ena/browser/api/fasta/JX878425.1?download=true > mpox_ref.fa
 
-
+mkdir -p $WGS_REF_FASTA
 
 #Step 2: Quality Control (QC) check using NanoPlot
 ##################################################
@@ -79,7 +79,9 @@ nanoplot --fastq all_reads.fastq -o $WGS_DATA_TRIM_DIR
 #Step 3: Data filtering based on quality score Q() using fastp
 ##############################################################
 
-fastp -i all_reads.fastq -o $WGS_DATA_TRIM_DIR/all_reads_QC.fastq -q 9 -Q
+cd $WGS_DATA_TRIM_DIR
+
+fastp -i $WGS_DATA_DIR/all_reads.fastq -o all_reads_QC.fastq -q 9 -Q
 
 #QUESTION 3: Please report the values below, from the data you find: 
 #total reads: ____________
@@ -110,11 +112,11 @@ sudo apt install cutadapt
 
 #Trim adapters from the first end of the reads
 
-cutadapt -u 30 -o $WGS_DATA_TRIM_DIR/all_reads_QC1.fastq $WGS_DATA_TRIM_DIR/all_reads_QC.fastq
+cutadapt -u 30 -o all_reads_QC1.fastq $WGS_DATA_TRIM_DIR/all_reads_QC.fastq
 
 # Trim adapters from the other end of the reads
 
-cutadapt -u -30 -o $WGS_DATA_TRIM_DIR/all_reads_QC2.fastq $WGS_DATA_TRIM_DIR/all_reads_QC1.fastq
+cutadapt -u -30 -o all_reads_QC2.fastq $WGS_DATA_TRIM_DIR/all_reads_QC1.fastq
 
 QUESTION 4: Compare Total basepairs processed in both 'cutadapt' steps. Are they the same or different? Why? 
 
@@ -123,11 +125,13 @@ QUESTION 4: Compare Total basepairs processed in both 'cutadapt' steps. Are they
 #################################################################################
 
 echo $WGS_HOME
+cd $WGS_TRIM_DIR
 
 # Align reads to the reference genome by providing the right PATH to your data and the reference and generate SAM file
-minimap2 -Y -t 12 -x map-ont -a /Users/JeanPierre/Documents/Bioinformatics/barcode25/SARS_Cov2_refs/GCA_009858895.3.fasta all_reads_QC2.fastq > all_reads.sam
+minimap2 -Y -t 12 -x map-ont -a $WGS_REF_FASTA $WGS_DATA_TRIM_DIR/all_reads_QC2.fastq > all_reads.sam
 
 #Step 6: Sort the SAM file
+############################
 
 # Sort the SAM file
 samtools sort -O SAM -o all_reads_sorted.sam all_reads.sam
