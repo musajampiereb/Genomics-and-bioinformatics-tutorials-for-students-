@@ -167,7 +167,7 @@ samtools sort -O SAM -o all_reads_sorted.sam all_reads.sam
 samtools view -bS all_reads_sorted.sam | samtools sort -@ 16 -o all_reads.bam
 
 
-#QUESTION 7: WHat is the main difference between SAM and BAM files? Why is the conversion of SAM to BAM important? 
+#QUESTION 7: What is the main difference between SAM and BAM files? Why is the conversion of SAM to BAM important? 
 
 #Step 8: Index the BAM file
 
@@ -177,12 +177,12 @@ samtools index all_reads.bam
 #Step 9: Create a depth profile
 
 # Create a depth profile of the aligned reads
-samtools mpileup -a -A -Q 0 -d 0 -f /Users/JeanPierre/Documents/Bioinformatics/NRL_SARS_CoV2/SARS_Cov2_refs/GCA_009858895.3.fasta all_reads.bam | awk '{print $2","$3","$4}' > all_reads.depth
+samtools mpileup -a -A -Q 0 -d 0 -f $WGS_REF_FASTA all_reads.bam | awk '{print "$2","$3","$4"}' > all_reads.depth
 
 #Step 10: Variant calling
 
 # Call variants using bcftools
-bcftools mpileup -f /Users/JeanPierre/Documents/Bioinformatics/barcode25/SARS_Cov2_refs/GCA_009858895.3.fasta all_reads.bam | bcftools call -mv -Oz -o all_reads.vcf.gz
+bcftools mpileup -f $WGS_REF_FASTA all_reads.bam | bcftools call -mv -Oz -o all_reads.vcf.gz
 
 #Step 11: Filter the VCF file
 
