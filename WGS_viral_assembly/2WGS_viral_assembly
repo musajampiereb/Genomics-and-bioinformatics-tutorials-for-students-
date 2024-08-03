@@ -61,7 +61,11 @@ cd $WGS_REFS_DIR
 
 wget https://www.ebi.ac.uk/ena/browser/api/fasta/JX878425.1?download=true > mpox_ref.fa
 
+#Rename the downloaded reference genome as follows: 
+cp JX878425.1?download=true mpox_ref.fa
+
 mkdir -p $WGS_REF_FASTA
+
 
 #QUESTION 1B: What is the size of the reference genome in terms of number of nucleotides?
 #             Which file type is that and how is it different from the FASTQ file? 
