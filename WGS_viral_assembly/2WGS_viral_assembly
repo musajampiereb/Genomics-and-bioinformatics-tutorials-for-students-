@@ -99,7 +99,7 @@ NanoPlot --fastq all_reads.fastq.gz -o QC_REPORT --plot kde
 
 cd $WGS_DATA_TRIM_DIR
 
-fastp -i $WGS_DATA_DIR/all_reads.fastq -o all_reads_QC.fastq -q 9 -Q
+fastp -w 48 -i all_reads.fastq -l 100 -q 9 -o all_readsQC.fastq
 
 #QUESTION 3: Please report the values below, from the data you find: 
 #total reads: ____________
