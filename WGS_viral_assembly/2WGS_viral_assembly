@@ -121,6 +121,8 @@ fastp -w 48 -i all_reads.fastq -l 100 -q 9 -o all_readsQC.fastq
 #reads with adapter trimmed: ____________
 #bases trimmed due to adapters:_______________
 
+#Duplication rate (may be overestimated since this is SE data): ____________
+
 #Step 4: Trim adapters from the first and the last end
 ######################################################
 
