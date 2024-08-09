@@ -81,6 +81,12 @@ mkdir -p $WGS_DATA_TRIM_DIR
 
 #Run the command below ensuring that the right <FILE NAME> is provided 
 
+#If the zipped data is not available any more, you can zip it again to be able to run the following command
+
+gzip all_reads.fastq
+
+#Then you can compute the QC using the NanoPlot tool 
+
 NanoPlot --fastq all_reads.fastq.gz -o QC_REPORT --plot kde
 
 #Go to the $WGS_DATA_TRIM_DIR directory and open the generated files to understand the quality status 
