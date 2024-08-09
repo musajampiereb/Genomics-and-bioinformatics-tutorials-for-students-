@@ -86,6 +86,11 @@ mkdir -p $WGS_DATA_TRIM_DIR
 gzip all_reads.fastq
 
 #Then you can compute the QC using the NanoPlot tool 
+#First check if NanoPlot is installed. If not, you can install it with conda. 
+
+conda install bioconda::nanoplot 
+
+#Then run the command below to check the quality. Make sure that you are using the right file name 
 
 NanoPlot --fastq all_reads.fastq.gz -o QC_REPORT --plot kde
 
