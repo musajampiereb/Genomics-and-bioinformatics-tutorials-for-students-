@@ -1,29 +1,54 @@
 #!/bin/bash
 ###############################################################
-## whole Genome Sequence Assembly pipelines for viral genome ##
+## whole Genome Sequence Assembly workflow for viral genome ##
 ###############################################################
 
 #NOTE: This assignment is built on the already published raw data from the MPOX outbreak in Kamituga, South Kivu
 # You may be able to access the publication by following the link: https://www.eurosurveillance.org/content/10.2807/1560-7917.ES.2024.29.11.2400106 
 
-#Step 0: Let us get the raw data to use 
+#Step 0: Let us working directories to be used in the workflow
+##############################################################
+
+#Create a working directory and set the ‘WGS_HOME’ environment variable
+
+mkdir -p ~/workspace/bioinformatics/
+
+export WGS_HOME=~/workspace/bioinformatics
+
+#Make sure whatever the working directory is, that it is set and is valid
+
+echo $WGS_HOME
+
+#Since all the environment variables we set up for the RNA-seq workshop start with ‘RNA’ we can easily view them all by combined use of the env and grep commands as shown below. The env command shows all environment variables currently defined and the grep command identifies string matches.
+
+env | grep WGS
+
+#You can place the WGS_HOME variable (and other environment variables) in your .bashrc and then logout and login again to avoid having to worry about it.
+
+#You can then create other variables which will host your needed directories in the workflow
+
+export WGS_HOME=~/workspace/bioinformatics
+export WGS_DATA_DIR=$WGS_HOME/data
+export WGS_DATA_TRIM_DIR=$WGS_DATA_DIR/trimmed
+export WGS_REFS_DIR=$WGS_HOME/refs
+export WGS_REF_INDEX=$WGS_REFS_DIR/mpox_ref
+export WGS_REF_FASTA=$WGS_REF_INDEX.fa
+export WGS_REF_GTF=$WGS_REF_INDEX.gtf
+export WGS_ALIGN_DIR=$WGS_HOME/alignments/minimap2
+
+export PICARD=/home/ubuntu/bin/picard.jar
+
+#Make sure that we have all the environment variables created
+env | grep WGS
+
+#Step 1: Download raw data and the reference genome in their respective directories
+#########################################################################################
 
 #First we will create the necessary working directory for rw data.
 
 cd $WGS_HOME
 echo $WGS_DATA_DIR
 mkdir -p $WGS_DATA_DIR
-mkdir -p $WGS_REFS_DIR
-
-#Let us change the directory (cd) and go to the created data directory for raw data
-cd $WGS_DATA_DIR
-
-
-#Now check which directory you are in. The terminal should show that you are in the data directory 
-pwd
-
-#Step 1: Download raw data and the reference genome in their respective directories
-#########################################################################################
 
 #Let us change the directory (cd) and go to the created data directory for raw data
 cd $WGS_DATA_DIR
@@ -53,8 +78,10 @@ grep -o '@ERR12670' ERR12670104.fastq | wc -l    #How many reads are they?
 #Rename your FASTQ file to easily follow the next steps...
 cp ERR12670104.fastq all_reads.fastq
 
-#Let us change the directory (cd) and go to the created directory for reference sequence
+#Let us create the directory to store reference sequences and change to that directory (cd)
 
+cd $WGS_HOME
+mkdir -p $WGS_REFS_DIR
 cd $WGS_REFS_DIR
 
 #use the 'wget' function to download the reference format 
@@ -66,7 +93,6 @@ cp JX878425.1?download=true mpox_ref.fa
 
 mkdir -p $WGS_REF_FASTA
 
-
 #QUESTION 1B: What is the size of the reference genome in terms of number of nucleotides?
 #             Which file type is that and how is it different from the FASTQ file? 
 #             Does this file contain annotation data? what kind of file would you need if you need the annotation information? 
@@ -75,6 +101,7 @@ mkdir -p $WGS_REF_FASTA
 ##################################################
 
 #Create the directory to store quality data
+
 cd $WGS_HOME
 echo $WGS_DATA_TRIM_DIR
 mkdir -p $WGS_DATA_TRIM_DIR
@@ -110,6 +137,8 @@ open QC_REPORT
 #Step 3: Data filtering based on quality score Q() using fastp
 ##############################################################
 
+cd $WGS_HOME
+mkdir -p $WGS_DATA_TRIM_DIR
 cd $WGS_DATA_TRIM_DIR
 
 #If your fastq file is not unzipped, please use the commanda below to unzip it 
