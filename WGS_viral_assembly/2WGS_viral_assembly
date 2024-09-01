@@ -11,12 +11,12 @@
 # This workflow guides you through downloading raw sequencing data, performing quality control, trimming, alignment, 
 # variant calling, and finally creating a consensus sequence for the MPOX virus.
 
-# Step 0: Create and activate Environment, Install needed tools, Setup Working Directories, and Environment Variables
+# Step 0: Create and activate Environment, set up Working Directories, and Environment Variables
 ###############################################################
 #Create conda environment
 conda create -n wgs_env python=3.8
 
-#Install the conda environment 
+#Activate the created conda environment 
 conda activate wgs_env
 
 # Create a working directory and set the ‘WGS_HOME’ environment variable.
