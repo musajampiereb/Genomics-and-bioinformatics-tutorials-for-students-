@@ -82,7 +82,6 @@ wget https://www.ebi.ac.uk/ena/browser/api/fasta/JX878425.1?download=true -O mpo
 
 # Create a directory to store quality control reports and navigate to it.
 mkdir -p $WGS_DATA_TRIM_DIR
-cd $WGS_DATA_TRIM_DIR
 
 # Ensure that NanoPlot is installed. If not, install it via conda.
 conda install bioconda::nanoplot
@@ -107,10 +106,10 @@ NanoPlot --fastq all_reads.fastq.gz -o QC_REPORT --plots kde
 gunzip all_reads.fastq.gz
 
 #Install FASTP tool 
-conda install bioconda::fastp# Filter the reads based on quality using fastp.
+conda install bioconda::fastp
 
 # Filter the reads based on read quality with a quality score of 9
-fastp -w 48 -i all_reads.fastq -l 100 -q 09 -o all_readsQC.fastq
+fastp -w 48 -i all_reads.fastq -l 100 -q 09 -o $WGS_DATA_TRIM_DIR/all_readsQC.fastq
 
 # QUESTION 3: Report the following after filtering:
 # 1. What is the total number of reads before and after filtering?  _____________
@@ -122,8 +121,11 @@ fastp -w 48 -i all_reads.fastq -l 100 -q 09 -o all_readsQC.fastq
 # Step 4: Trim Adapters Using Cutadapt
 #######################################
 
+#Change the directory to where the trimmed data are stored
+cd $WGS_DATA_TRIM_DIR
+
 # Ensure cutadapt is installed.
-conda install bioconda::nanoplot
+conda install bioconda::cutadapt
 
 # Trim adapters from both ends of the reads.
 cutadapt -u 30 -o all_reads_QC1.fastq all_readsQC.fastq
