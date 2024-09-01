@@ -80,8 +80,8 @@ wget https://www.ebi.ac.uk/ena/browser/api/fasta/JX878425.1?download=true -O mpo
 # Step 2: Quality Control (QC) Check Using NanoPlot
 ###################################################
 
-# Create a directory to store quality control reports and navigate to it.
-mkdir -p $WGS_DATA_TRIM_DIR
+#Go back to the folder that stores your data 
+cd $WGS_DATA_DIR
 
 # Ensure that NanoPlot is installed. If not, install it via conda.
 conda install bioconda::nanoplot
@@ -107,6 +107,9 @@ gunzip all_reads.fastq.gz
 
 #Install FASTP tool 
 conda install bioconda::fastp
+
+# Create a directory to store quality control reports and navigate to it.
+mkdir -p $WGS_DATA_TRIM_DIR
 
 # Filter the reads based on read quality with a quality score of 9
 fastp -w 48 -i all_reads.fastq -l 100 -q 09 -o $WGS_DATA_TRIM_DIR/all_readsQC.fastq
