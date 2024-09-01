@@ -3,19 +3,38 @@
 ## Whole Genome Sequence Assembly Workflow for Viral Genome (MPOX)  ##
 #######################################################################
 
-# NOTE: This assignment is based on published raw data from the MPOX outbreak in Kamituga, South Kivu.
+# NOTE1: This assignment is based on published raw data from the MPOX outbreak in Kamituga, South Kivu.
 # Access the publication here: https://www.eurosurveillance.org/content/10.2807/1560-7917.ES.2024.29.11.2400106 
+
+#NOTE2: This workflow requires to have "conda" installed and running on your computer 
 
 # This workflow guides you through downloading raw sequencing data, performing quality control, trimming, alignment, 
 # variant calling, and finally creating a consensus sequence for the MPOX virus.
 
-# Step 0: Setup Working Directories and Environment Variables
+# Step 0: Create and activate Environment, Install needed tools, Setup Working Directories, and Environment Variables
 ###############################################################
+#Create conda environment
+conda create -n wgs_env python=3.8
+
+#Install the conda environment 
+conda activate wgs_env
+
+#The script below helps you install all the needed tools. I also put an alternative installation code at each step. 
+conda install -c bioconda nanoplot fastp cutadapt minimap2 samtools bcftools
+
+#Verify the installation of the tools 
+nanoplot --version
+fastp --version
+cutadapt --version
+minimap2 --version
+samtools --version
+bcftools --version
 
 # Create a working directory and set the ‘WGS_HOME’ environment variable.
 
 mkdir -p ~/workspace/bioinformatics/
 export WGS_HOME=~/workspace/bioinformatics
+
 
 # Ensure that the working directory is set correctly.
 echo "Working Directory: $WGS_HOME"
