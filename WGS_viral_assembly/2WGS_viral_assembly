@@ -19,17 +19,6 @@ conda create -n wgs_env python=3.8
 #Install the conda environment 
 conda activate wgs_env
 
-#The script below helps you install all the needed tools. I also put an alternative installation code at each step. 
-conda install -c bioconda nanoplot fastp cutadapt minimap2 samtools bcftools
-
-#Verify the installation of the tools 
-nanoplot --version
-fastp --version
-cutadapt --version
-minimap2 --version
-samtools --version
-bcftools --version
-
 # Create a working directory and set the ‘WGS_HOME’ environment variable.
 
 mkdir -p ~/workspace/bioinformatics/
