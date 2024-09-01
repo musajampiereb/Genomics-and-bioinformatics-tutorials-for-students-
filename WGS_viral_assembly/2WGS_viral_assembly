@@ -1,265 +1,221 @@
 #!/bin/bash
+#######################################################################
+## Whole Genome Sequence Assembly Workflow for Viral Genome (MPOX)  ##
+#######################################################################
+
+# NOTE: This assignment is based on published raw data from the MPOX outbreak in Kamituga, South Kivu.
+# Access the publication here: https://www.eurosurveillance.org/content/10.2807/1560-7917.ES.2024.29.11.2400106 
+
+# This workflow guides you through downloading raw sequencing data, performing quality control, trimming, alignment, 
+# variant calling, and finally creating a consensus sequence for the MPOX virus.
+
+# Step 0: Setup Working Directories and Environment Variables
 ###############################################################
-## whole Genome Sequence Assembly workflow for viral genome ##
-###############################################################
 
-#NOTE: This assignment is built on the already published raw data from the MPOX outbreak in Kamituga, South Kivu
-# You may be able to access the publication by following the link: https://www.eurosurveillance.org/content/10.2807/1560-7917.ES.2024.29.11.2400106 
-
-#Step 0: Let us working directories to be used in the workflow
-##############################################################
-
-#Create a working directory and set the ‘WGS_HOME’ environment variable
+# Create a working directory and set the ‘WGS_HOME’ environment variable.
 
 mkdir -p ~/workspace/bioinformatics/
-
 export WGS_HOME=~/workspace/bioinformatics
 
-#Make sure whatever the working directory is, that it is set and is valid
+# Ensure that the working directory is set correctly.
+echo "Working Directory: $WGS_HOME"
 
-echo $WGS_HOME
-
-#Since all the environment variables we set up for the RNA-seq workshop start with ‘RNA’ we can easily view them all by combined use of the env and grep commands as shown below. The env command shows all environment variables currently defined and the grep command identifies string matches.
-
-env | grep WGS
-
-#You can place the WGS_HOME variable (and other environment variables) in your .bashrc and then logout and login again to avoid having to worry about it.
-
-#You can then create other variables which will host your needed directories in the workflow
-
-export WGS_HOME=~/workspace/bioinformatics
+# Set up additional environment variables for different directories in the workflow.
 export WGS_DATA_DIR=$WGS_HOME/data
 export WGS_DATA_TRIM_DIR=$WGS_DATA_DIR/trimmed
 export WGS_REFS_DIR=$WGS_HOME/refs
-export WGS_REF_INDEX=$WGS_REFS_DIR/mpox_ref
-export WGS_REF_FASTA=$WGS_REF_INDEX.fa
-export WGS_REF_GTF=$WGS_REF_INDEX.gtf
+export WGS_REF_FASTA=$WGS_REFS_DIR/mpox_ref.fa
 export WGS_ALIGN_DIR=$WGS_HOME/alignments/minimap2
+export WGS_DEPTH_DIR=$WGS_HOME/depth
+export WGS_VCF_DIR=$WGS_HOME/vcf
 
-export PICARD=/home/ubuntu/bin/picard.jar
-
-#Make sure that we have all the environment variables created
+# Ensure that all environment variables are correctly defined.
 env | grep WGS
 
-#Step 1: Download raw data and the reference genome in their respective directories
-#########################################################################################
+# QUESTION 0: Why is it important to set environment variables in a bioinformatics workflow?
+#              How does it help in managing files and directories?
 
-#First we will create the necessary working directory for rw data.
+# Step 1: Download Raw Data and Reference Genome
+################################################
 
-cd $WGS_HOME
-echo $WGS_DATA_DIR
+# Create the necessary directory for raw data and navigate to it.
 mkdir -p $WGS_DATA_DIR
-
-#Let us change the directory (cd) and go to the created data directory for raw data
 cd $WGS_DATA_DIR
 
-#Make sure you are in the right directory and download the raw data (FASTQ files)
-
-cd $WGS_HOME/data/
-
-#Then we can start downloading the data... NOTE: you can download only one of the 3 provided options and carry on till the end
-#The raw data is hosted at the EMBL institute, and you can download it to your local linux system using 'wget' function 
-
+# Download the raw FASTQ data files. 
+# Note: You only need to download one of the options provided to complete the assignment.
 wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR126/001/ERR12670101/ERR12670101.fastq.gz
 wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR126/004/ERR12670104/ERR12670104.fastq.gz
 wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR126/005/ERR12670105/ERR12670105.fastq.gz
 
-# Unzip the file to be able to inspect it 
+# Unzip the downloaded FASTQ files for inspection.
+gunzip *.fastq.gz
 
+# QUESTION 1A: Inspect the FASTQ file and answer the following:
+# 1. What is a FASTQ file, and what are its key components?
+# 2. How many reads are present in the file? (Use the command below to count)
+grep -c '^@' ERR12670104.fastq
 
-ls #check how many files you have in your folder 
+# Rename the FASTQ file for easier reference in subsequent steps.
+mv ERR12670104.fastq all_reads.fastq
 
-#QUESTION 1A: inspect the file and describe which type of file it is and its relatively important characteristics. 
-#            How many reads do we have in that file?
-#            You can use the command bellow to count how many reads are there: 
-
-grep -o '@ERR12670' ERR12670104.fastq | wc -l    #How many reads are they? 
-
-#Rename your FASTQ file to easily follow the next steps...
-cp ERR12670104.fastq all_reads.fastq
-
-#Let us create the directory to store reference sequences and change to that directory (cd)
-
-cd $WGS_HOME
-mkdir -p $WGS_REFS_DIR
+# Download the reference genome for the MPOX virus.
 cd $WGS_REFS_DIR
+wget https://www.ebi.ac.uk/ena/browser/api/fasta/JX878425.1?download=true -O mpox_ref.fa
 
-#use the 'wget' function to download the reference format 
+# QUESTION 1B: Answer the following regarding the reference genome:
+# 1. How many nucleotides are present in the reference genome? 
+#    (Hint: Use `grep -v '>' mpox_ref.fa | wc -c` to count the nucleotides)
+# 2. What are the key differences between a FASTA file and a FASTQ file?
+# 3. Does this file contain annotation data? If not, what file format would contain this information?
 
-wget https://www.ebi.ac.uk/ena/browser/api/fasta/JX878425.1?download=true > mpox_ref.fa
+# Step 2: Quality Control (QC) Check Using NanoPlot
+###################################################
 
-#Rename the downloaded reference genome as follows: 
-cp JX878425.1?download=true mpox_ref.fa
-
-mkdir -p $WGS_REF_FASTA
-
-#QUESTION 1B: What is the size of the reference genome in terms of number of nucleotides?
-#             Which file type is that and how is it different from the FASTQ file? 
-#             Does this file contain annotation data? what kind of file would you need if you need the annotation information? 
-
-#Step 2: Quality Control (QC) check using NanoPlot
-##################################################
-
-#Create the directory to store quality data
-
-cd $WGS_HOME
-echo $WGS_DATA_TRIM_DIR
-mkdir -p $WGS_DATA_TRIM_DIR
-
-#Run the command below ensuring that the right <FILE NAME> is provided 
-
-#If the zipped data is not available any more, you can zip it again to be able to run the following command
-
-gzip all_reads.fastq
-
-#Then you can compute the QC using the NanoPlot tool 
-#First check if NanoPlot is installed. If not, you can install it with conda. 
-
-conda install bioconda::nanoplot 
-
-#Then run the command below to check the quality. Make sure that you are using the right file name 
-
-NanoPlot --fastq all_reads.fastq.gz -o QC_REPORT --plot kde
-
-#Go to the $WGS_DATA_TRIM_DIR directory and open the generated files to understand the quality status 
-
-open QC_REPORT
-
-#QUESTION 2: Go to the output directory and describe the following: 
-#            Mean read length: ____________
-#            Mean read quality: ___________
-#            Median read length: __________
-#            Median read quality:__________
-#            Number of reads: _____________
-#            Read length N50: _____________
-#            Total bases: _________________
-
-#Step 3: Data filtering based on quality score Q() using fastp
-##############################################################
-
-cd $WGS_HOME
+# Create a directory to store quality control reports and navigate to it.
 mkdir -p $WGS_DATA_TRIM_DIR
 cd $WGS_DATA_TRIM_DIR
 
-#If your fastq file is not unzipped, please use the commanda below to unzip it 
+# Ensure that NanoPlot is installed. If not, install it via conda.
+conda install -c bioconda nanoplot
 
+# Perform a QC check on the FASTQ file using NanoPlot.
+gzip all_reads.fastq
+NanoPlot --fastq all_reads.fastq.gz -o QC_REPORT --plots kde
+
+# QUESTION 2: Navigate to the QC_REPORT directory and report the following:
+# 1. What is the mean read length?
+# 2. What is the mean read quality?
+# 3. What is the median read length?
+# 4. What is the median read quality?
+# 5. How many reads were analyzed?
+# 6. What is the N50 read length?
+# 7. What is the total base count?
+
+# Step 3: Data Filtering Based on Quality Score Using fastp
+###########################################################
+
+# Ensure the FASTQ file is unzipped.
 gunzip all_reads.fastq.gz
 
-# Then filter the fastq file to remove short and low quality reads 
+# Filter the reads based on quality using fastp.
+conda install -c bioconda fastp
+fastp -w 48 -i all_reads.fastq -l 100 -q 20 -o all_readsQC.fastq
 
-fastp -w 48 -i all_reads.fastq -l 100 -q 9 -o all_readsQC.fastq
+# QUESTION 3: Report the following after filtering:
+# 1. What is the total number of reads before and after filtering?
+# 2. What percentage of bases have a quality score of Q20 or higher?
+# 3. What percentage of bases have a quality score of Q30 or higher?
+# 4. How many reads failed due to low quality, too many Ns, or being too short?
+# 5. What is the duplication rate?
 
-#QUESTION 3: Please report the values below, from the data you find: 
-#total reads: ____________
-#total bases: _____________
-#Q20 bases: ____________%____
-#Q30 bases: ____________%______
+# Step 4: Trim Adapters Using Cutadapt
+#######################################
 
-#Read1 after filtering:
-#total reads:_________
-#total bases: __________
-#Q20 bases: _________%_________
-#Q30 bases: __________%________
+# Ensure cutadapt is installed.
+conda install -c bioconda cutadapt
 
-#Filtering result:_____________
-#reads passed filter: _________________
-#reads failed due to low quality:________
-#reads failed due to too many N: __________
-#reads failed due to too short:_______________
-#reads with adapter trimmed: ____________
-#bases trimmed due to adapters:_______________
+# Trim adapters from both ends of the reads.
+cutadapt -u 30 -o all_reads_QC1.fastq all_readsQC.fastq
+cutadapt -u -30 -o all_reads_QC2.fastq all_reads_QC1.fastq
 
-#Duplication rate (may be overestimated since this is SE data): ____________
+# QUESTION 4: Compare the total base pairs processed in both cutadapt steps.
+# 1. Are the base pairs processed in both steps the same or different? Why?
+# 2. What are the implications of trimming on downstream analysis?
 
-#Step 4: Trim adapters from the first and the last end
-######################################################
+# Step 5: Align Reads to the Reference Genome Using Minimap2
+############################################################
 
-#Check if the cutadapt tool is installed and if not install using the command bellow: 
-
-sudo apt install cutadapt
-
-#Trim adapters from the first end of the reads
-
-cutadapt -u 30 -o all_reads_QC1.fastq $WGS_DATA_TRIM_DIR/all_reads_QC.fastq
-
-# Trim adapters from the other end of the reads
-
-cutadapt -u -30 -o all_reads_QC2.fastq $WGS_DATA_TRIM_DIR/all_reads_QC1.fastq
-
-QUESTION 4: Compare Total basepairs processed in both 'cutadapt' steps. Are they the same or different? Why? 
-
-
-#Step 5: Align reads to the reference genome using minimap2 and generate SAM file
-#################################################################################
-
-#We need to make sure that we are in the right directories 
-echo $WGS_HOME
-We will create the directory to save alignment data
+# Create the alignment directory and navigate to it.
 mkdir -p $WGS_ALIGN_DIR
 cd $WGS_ALIGN_DIR
 
-# Align reads to the reference genome by providing the right PATH to your data and the reference and generate SAM file
+# Align the reads to the reference genome using minimap2 and generate a SAM file.
+conda install -c bioconda minimap2
 minimap2 -Y -t 12 -x map-ont -a $WGS_REF_FASTA $WGS_DATA_TRIM_DIR/all_reads_QC2.fastq > all_reads.sam
 
-#QUESTION 5: Inspect and describe the obtained SAM file, and answer to the following questions: 
-#            What are the characteristic features of SAM file? 
-#            using the head function try to describe the obtained sam file using the key features
-#            
+# QUESTION 5: Inspect the SAM file and describe its characteristic features.
+# 1. What are the characteristic features of a SAM file?
+# 2. What information does each column in the SAM file represent?
+# 3. Why is the SAM file crucial in genome assembly?
 
+# Step 6: Sort the SAM File Using Samtools
+###########################################
 
-#Step 6: Sort the SAM file
-############################
-
-# Sort the SAM file
+# Sort the SAM file using samtools.
+conda install -c bioconda samtools
 samtools sort -O SAM -o all_reads_sorted.sam all_reads.sam
 
-#QUESTION: using the generated sorted sam file as an example, why do we need to sort the SAM file? 
+# QUESTION 6: Why is it necessary to sort the SAM file?
+# 1. What are the benefits of sorting a SAM file before further processing?
+# 2. What problems could arise if the SAM file is not sorted?
 
-#Step 7: Convert SAM to BAM and sort
-####################################
+# Step 7: Convert SAM to BAM and Sort
+#####################################
 
-# Convert SAM to BAM and sort the BAM file
+# Convert the sorted SAM file to BAM format and sort the BAM file.
 samtools view -bS all_reads_sorted.sam | samtools sort -@ 16 -o all_reads.bam
 
+# QUESTION 7: What is the difference between SAM and BAM files?
+# 1. Why is the conversion from SAM to BAM important?
+# 2. How does the BAM format benefit downstream analyses compared to SAM?
 
-#QUESTION 7: What is the main difference between SAM and BAM files? Why is the conversion of SAM to BAM important? 
+# Step 8: Index the BAM File
+#############################
 
-#Step 8: Index the BAM file
-############################
-
-# Index the BAM file
+# Index the BAM file to prepare it for further analysis.
 samtools index all_reads.bam
 
-#Step 9: Create a depth profile
+# QUESTION 8: Why is indexing the BAM file important?
+# 1. How does indexing improve the performance of downstream analyses?
+# 2. What would happen if you skipped this step?
+
+# Step 9: Create a Depth Profile
 ################################
 
-# Create a depth profile of the aligned reads
-samtools mpileup -a -A -Q 0 -d 0 -f $WGS_REF_FASTA all_reads.bam | awk '{print "$2","$3","$4"}' > all_reads.depth
+# Create a directory to store depth information.
+mkdir -p $WGS_DEPTH_DIR
+cd $WGS_DEPTH_DIR
 
-#Step 10: Variant calling
-#########################
+# Generate a depth profile of the aligned reads.
+samtools mpileup -a -A -Q 0 -d 0 -f $WGS_REF_FASTA $WGS_ALIGN_DIR/all_reads.bam | awk '{print $2, $3, $4}' > all_reads.depth
 
-# Call variants using bcftools
-bcftools mpileup -f $WGS_REF_FASTA all_reads.bam | bcftools call -mv -Oz -o all_reads.vcf.gz
+# QUESTION 9: What does the depth profile represent?
+# 1. Why is the depth of coverage important in genome assembly?
+# 2. How can depth information be used to assess the quality of the alignment?
 
-#Step 11: Filter the VCF file
-##############################
+# Step 10: Variant Calling Using BCFtools
+#########################################
 
-# Filter the VCF file using bcftools
+# Create a directory to store VCF files.
+mkdir -p $WGS_VCF_DIR
+cd $WGS_VCF_DIR
+
+# Call variants using bcftools.
+bcftools mpileup -f $WGS_REF_FASTA $WGS_ALIGN_DIR/all_reads.bam | bcftools call -mv -Oz -o all_reads.vcf.gz
+
+# QUESTION 10: Explain the process of variant calling.
+# 1. What is the significance of identifying variants in the genome assembly process?
+# 2. What do the different flags used in bcftools mpileup and call mean?
+
+# Step 11: Filter the VCF File for High-Quality Variants
+#######################################################
+
+# Filter the VCF file for high-quality variants.
 bcftools filter -i 'DP>20 && AF>0.1' all_reads.vcf.gz -Oz -o all_reads_filtered.vcf.gz
 
-#Step 12: Create a consensus sequence
+# QUESTION 11: Discuss the criteria used in filtering the VCF file.
+# 1. What do DP and AF represent in the filtering process?
+# 2. Why are these specific thresholds used for filtering?
+
+# Step 12: Create a Consensus Sequence
 ######################################
 
+# Generate a consensus sequence using the filtered variants.
+bcftools consensus -f $WGS_REF_FASTA all_reads_filtered.vcf.gz > all_reads_consensus_temp.fasta
 
-# Index the reference genome
-samtools faidx /Users/JeanPierre/Documents/Bioinformatics/NRL_SARS_CoV2/barcode25/SARS_Cov2_refs/GCA_009858895.3.fasta
-
-# Generate consensus sequence with bcftools consensus
-bcftools consensus -f /Users/JeanPierre/Documents/Bioinformatics/barcode25/SARS_Cov2_refs/GCA_009858895.3.fasta all_reads_filtered.vcf.gz > all_reads_consensus_temp.fasta
-
-# Incorporate depth profile into the consensus sequence
-awk -F, -v depth_file=all_reads.depth 'BEGIN {
+# Incorporate depth profile information into the consensus sequence.
+awk -v depth_file=$WGS_DEPTH_DIR/all_reads.depth 'BEGIN {
   while ((getline < depth_file) > 0) {
     depth[$1] = $3
   }
@@ -277,3 +233,17 @@ awk -F, -v depth_file=all_reads.depth 'BEGIN {
     print seq
   }
 }' all_reads_consensus_temp.fasta > all_reads_consensus.fasta
+
+# QUESTION 12: What is the purpose of generating a consensus sequence?
+# 1. How does the consensus sequence differ from the reference genome?
+# 2. What role does the depth profile play in generating the consensus sequence?
+
+# Step 13: Final Report and Interpretation
+##########################################
+
+# Summarize the workflow and analyze the generated consensus sequence.
+
+# QUESTION 13:
+# 1. What is the final consensus sequence length?
+# 2. How does the consensus sequence compare to the reference genome?
+# 3. What are the potential implications of the identified variants on the virus's behavior or treatment?
