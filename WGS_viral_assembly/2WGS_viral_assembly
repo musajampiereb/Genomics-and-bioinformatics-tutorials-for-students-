@@ -85,7 +85,7 @@ mkdir -p $WGS_DATA_TRIM_DIR
 cd $WGS_DATA_TRIM_DIR
 
 # Ensure that NanoPlot is installed. If not, install it via conda.
-conda install -c bioconda nanoplot
+conda install bioconda::nanoplot
 
 # Perform a QC check on the FASTQ file using NanoPlot.
 gzip all_reads.fastq
@@ -106,9 +106,11 @@ NanoPlot --fastq all_reads.fastq.gz -o QC_REPORT --plots kde
 # Ensure the FASTQ file is unzipped.
 gunzip all_reads.fastq.gz
 
-# Filter the reads based on quality using fastp.
-conda install -c bioconda fastp
-fastp -w 48 -i all_reads.fastq -l 100 -q 20 -o all_readsQC.fastq
+#Install FASTP tool 
+conda install bioconda::fastp# Filter the reads based on quality using fastp.
+
+# Filter the reads based on read quality with a quality score of 9
+fastp -w 48 -i all_reads.fastq -l 100 -q 09 -o all_readsQC.fastq
 
 # QUESTION 3: Report the following after filtering:
 # 1. What is the total number of reads before and after filtering?  _____________
