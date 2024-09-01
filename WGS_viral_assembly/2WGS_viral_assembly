@@ -61,7 +61,7 @@ gunzip *.fastq.gz
 
 # QUESTION 1A: Inspect the FASTQ file and answer the following:
 # 1. What is a FASTQ file, and what are its key components?
-# 2. How many reads are present in the file? (Use the command below to count, and make sure the FASTQ file use put corresponds to what you downloaded)
+# 2. How many reads are present in the file? (Use the command below to count, and make sure the FASTQ file you use corresponds to your choice of the 3 options you were supposed to download)
 grep -c '^@' ERR12670104.fastq
 
 # Rename the FASTQ file for easier reference in subsequent steps. As above, please make sure that the FASTQ file name you use corresponds to what you downloaded
