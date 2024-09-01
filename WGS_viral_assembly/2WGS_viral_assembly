@@ -84,13 +84,13 @@ gzip all_reads.fastq
 NanoPlot --fastq all_reads.fastq.gz -o QC_REPORT --plots kde
 
 # QUESTION 2: Navigate to the QC_REPORT directory and report the following:
-# 1. What is the mean read length?
-# 2. What is the mean read quality?
-# 3. What is the median read length?
-# 4. What is the median read quality?
-# 5. How many reads were analyzed?
-# 6. What is the N50 read length?
-# 7. What is the total base count?
+# 1. What is the mean read length?   ____________
+# 2. What is the mean read quality?  ____________
+# 3. What is the median read length? ____________
+# 4. What is the median read quality?____________
+# 5. How many reads were analyzed?   ____________
+# 6. What is the N50 read length?    ____________
+# 7. What is the total base count?   ____________
 
 # Step 3: Data Filtering Based on Quality Score Using fastp
 ###########################################################
@@ -103,11 +103,11 @@ conda install -c bioconda fastp
 fastp -w 48 -i all_reads.fastq -l 100 -q 20 -o all_readsQC.fastq
 
 # QUESTION 3: Report the following after filtering:
-# 1. What is the total number of reads before and after filtering?
-# 2. What percentage of bases have a quality score of Q20 or higher?
-# 3. What percentage of bases have a quality score of Q30 or higher?
-# 4. How many reads failed due to low quality, too many Ns, or being too short?
-# 5. What is the duplication rate?
+# 1. What is the total number of reads before and after filtering?  _____________
+# 2. What percentage of bases have a quality score of Q20 or higher?_____________
+# 3. What percentage of bases have a quality score of Q30 or higher?_____________
+# 4. How many reads failed due to low quality, too many Ns, or being too short?_________
+# 5. What is the duplication rate?____________
 
 # Step 4: Trim Adapters Using Cutadapt
 #######################################
