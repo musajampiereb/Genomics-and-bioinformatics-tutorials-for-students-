@@ -146,7 +146,7 @@ mkdir -p $WGS_ALIGN_DIR
 cd $WGS_ALIGN_DIR
 
 # Align the reads to the reference genome using minimap2 and generate a SAM file.
-conda install -c bioconda minimap2
+conda install bioconda::minimap2
 minimap2 -Y -t 12 -x map-ont -a $WGS_REF_FASTA $WGS_DATA_TRIM_DIR/all_reads_QC2.fastq > all_reads.sam
 
 # QUESTION 5: Inspect the SAM file and describe its characteristic features.
