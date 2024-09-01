@@ -202,6 +202,9 @@ samtools mpileup -a -A -Q 0 -d 0 -f $WGS_REF_FASTA $WGS_ALIGN_DIR/all_reads.bam 
 # Step 10: Variant Calling Using BCFtools
 #########################################
 
+#Install bcftools with conda
+conda install bioconda::bcftools
+
 # Create a directory to store VCF files.
 mkdir -p $WGS_VCF_DIR
 cd $WGS_VCF_DIR
