@@ -158,7 +158,7 @@ minimap2 -Y -t 12 -x map-ont -a $WGS_REF_FASTA $WGS_DATA_TRIM_DIR/all_reads_QC2.
 ###########################################
 
 # Sort the SAM file using samtools.
-conda install -c bioconda samtools
+conda install bioconda::samtools
 samtools sort -O SAM -o all_reads_sorted.sam all_reads.sam
 
 # QUESTION 6: Why is it necessary to sort the SAM file?
