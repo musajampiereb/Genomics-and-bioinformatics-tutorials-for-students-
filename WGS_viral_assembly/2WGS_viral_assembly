@@ -121,7 +121,7 @@ fastp -w 48 -i all_reads.fastq -l 100 -q 20 -o all_readsQC.fastq
 #######################################
 
 # Ensure cutadapt is installed.
-conda install -c bioconda cutadapt
+conda install bioconda::nanoplot
 
 # Trim adapters from both ends of the reads.
 cutadapt -u 30 -o all_reads_QC1.fastq all_readsQC.fastq
