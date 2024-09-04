@@ -247,36 +247,53 @@ This workflow guides you through downloading raw sequencing data, performing qua
 
 ## Step 12: Create a Consensus Sequence
 
-1. Index the filtered VCF file
+#!/bin/bash
+# Consensus Sequence Generation Script
 
-    ```bash
-    bcftools index all_reads_filtered.vcf.gz
-    ```
+# Define file paths
 
-2. Generate a consensus sequence
+```bash
+depth_file="$WGS_DEPTH_DIR/all_reads.depth"
+input_fasta="all_reads_consensus_temp.fasta"
+output_fasta="all_reads_consensus.fasta"
+filtered_consensus="all_reads_consensus_filtered.fasta"
+```
+# Minimum depth threshold
+min_depth=20
 
-    ```bash
-    bcftools consensus -f $WGS_REF_FASTA all_reads_filtered.vcf.gz > all_reads_consensus_temp.fasta
-    ```
+# Filter the depth profile and prepare regions to include
 
-3. Refine the consensus sequence based on depth information
-
-    ```bash
-    depth_file="$WGS_DEPTH_DIR/all_reads.depth"
-    input_fasta="all_reads_consensus_temp.fasta"
-    output_fasta="all_reads_consensus.fasta"
-
-    awk -v depth_file="$depth_file" '
-    BEGIN {
-        while ((getline < depth_file) > 0) {
+```bash
+awk -v min_depth=$min_depth '
+BEGIN {
+    while ((getline < depth_file) > 0) {
+        if ($3 >= min_depth) {
             depth[$2] = $3
         }
     }
-    {
-        if (/^>/) {
-            print $0
-        } else {
-            seq = $0
-            for (i = 1; i <= length(seq); i++) {
-                if (depth[i] < 20) {
-                    seq = substr(seq, 1, i-1) "
+}
+{
+    if (/^>/) {
+        print $0
+    } else {
+        seq = $0
+        for (i = 1; i <= length(seq); i++) {
+            if (!(i in depth)) {
+                seq = substr(seq, 1, i-1) "N" substr(seq, i+1)
+            }
+        }
+        print seq
+    }
+}' "$input_fasta" > "$output_fasta"
+```
+
+# Install ivar if not already installed
+```bash
+conda install -c bioconda ivar
+```
+# Generate consensus sequence using ivar
+```bash
+ivar consensus -t 0 -i $WGS_ALIGN_DIR/all_reads.bam -f $WGS_REF_FASTA -b $WGS_VCF_DIR/all_reads_filtered.vcf.gz -o $filtered_consensus
+
+echo "Consensus sequence generated and saved to $filtered_consensus"
+```
