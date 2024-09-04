@@ -1,3 +1,4 @@
+```bash
 #!/bin/bash
 #######################################################################
 ## Whole Genome Sequence Assembly Workflow for Viral Genome (MPOX)  ##
@@ -6,24 +7,22 @@
 # NOTE1: This assignment is based on published raw data from the MPOX outbreak in Kamituga, South Kivu.
 # Access the publication here: https://www.eurosurveillance.org/content/10.2807/1560-7917.ES.2024.29.11.2400106 
 
-#NOTE2: This workflow requires to have "conda" installed and running on your computer 
+# NOTE2: This workflow requires "conda" to be installed and running on your computer 
 
 # This workflow guides you through downloading raw sequencing data, performing quality control, trimming, alignment, 
 # variant calling, and finally creating a consensus sequence for the MPOX virus.
 
 # Step 0: Create and activate Environment, set up Working Directories, and Environment Variables
 ###############################################################
-#Create conda environment
+# Create conda environment
 conda create -n wgs_env python=3.8
 
-#Activate the created conda environment 
+# Activate the created conda environment 
 conda activate wgs_env
 
 # Create a working directory and set the ‘WGS_HOME’ environment variable.
-
 mkdir -p ~/workspace/bioinformatics/
 export WGS_HOME=~/workspace/bioinformatics
-
 
 # Ensure that the working directory is set correctly.
 echo "Working Directory: $WGS_HOME"
@@ -40,9 +39,6 @@ export WGS_VCF_DIR=$WGS_HOME/vcf
 # Ensure that all environment variables are correctly defined.
 env | grep WGS
 
-# QUESTION 0: Why is it important to set environment variables in a bioinformatics workflow?
-#              How does it help in managing files and directories?
-
 # Step 1: Download Raw Data and Reference Genome
 ################################################
 
@@ -50,8 +46,7 @@ env | grep WGS
 mkdir -p $WGS_DATA_DIR
 cd $WGS_DATA_DIR
 
-# Download the raw FASTQ data files. 
-# Note: You only need to download one of the options provided to complete the assignment.
+# Download the raw FASTQ data files.
 wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR126/001/ERR12670101/ERR12670101.fastq.gz
 wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR126/004/ERR12670104/ERR12670104.fastq.gz
 wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR126/005/ERR12670105/ERR12670105.fastq.gz
@@ -59,28 +54,17 @@ wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR126/005/ERR12670105/ERR12670105.fastq
 # Unzip the downloaded FASTQ files for inspection.
 gunzip *.fastq.gz
 
-# QUESTION 1A: Inspect the FASTQ file and answer the following:
-# 1. What is a FASTQ file, and what are its key components?
-# 2. How many reads are present in the file? (Use the command below to count, and make sure the FASTQ file you use corresponds to your choice of the 3 options you were supposed to download)
-grep -c '^@' ERR12670104.fastq
-
-# Rename the FASTQ file for easier reference in subsequent steps. As above, please make sure that the FASTQ file name you use corresponds to what you downloaded
+# Rename the FASTQ file for easier reference in subsequent steps.
 mv ERR12670104.fastq all_reads.fastq
 
 # Download the reference genome for the MPOX virus.
 cd $WGS_REFS_DIR
 wget https://www.ebi.ac.uk/ena/browser/api/fasta/JX878425.1?download=true -O mpox_ref.fa
 
-# QUESTION 1B: Answer the following regarding the reference genome:
-# 1. How many nucleotides are present in the reference genome? 
-#    (Hint: Use `grep -v '>' mpox_ref.fa | wc -c` to count the nucleotides)
-# 2. What are the key differences between a FASTA file and a FASTQ file?
-# 3. Does this file contain annotation data? If not, what file format would contain this information?
-
 # Step 2: Quality Control (QC) Check Using NanoPlot
 ###################################################
 
-#Go back to the folder that stores your data 
+# Go back to the folder that stores your data.
 cd $WGS_DATA_DIR
 
 # Ensure that NanoPlot is installed. If not, install it via conda.
@@ -90,41 +74,25 @@ conda install bioconda::nanoplot
 gzip all_reads.fastq
 NanoPlot --fastq all_reads.fastq.gz -o QC_REPORT --plots kde
 
-# QUESTION 2: Navigate to the QC_REPORT directory and report the following:
-# 1. What is the mean read length?   ____________
-# 2. What is the mean read quality?  ____________
-# 3. What is the median read length? ____________
-# 4. What is the median read quality?____________
-# 5. How many reads were analyzed?   ____________
-# 6. What is the N50 read length?    ____________
-# 7. What is the total base count?   ____________
-
 # Step 3: Data Filtering Based on Quality Score Using fastp
 ###########################################################
 
 # Ensure the FASTQ file is unzipped.
 gunzip all_reads.fastq.gz
 
-#Install FASTP tool 
+# Install FASTP tool 
 conda install bioconda::fastp
 
 # Create a directory to store quality control reports and navigate to it.
 mkdir -p $WGS_DATA_TRIM_DIR
 
-# Filter the reads based on read quality with a quality score of 9
+# Filter the reads based on read quality with a quality score of 9.
 fastp -w 48 -i all_reads.fastq -l 100 -q 09 -o $WGS_DATA_TRIM_DIR/all_readsQC.fastq
-
-# QUESTION 3: Report the following after filtering:
-# 1. What is the total number of reads before and after filtering?  _____________
-# 2. What percentage of bases have a quality score of Q20 or higher?_____________
-# 3. What percentage of bases have a quality score of Q30 or higher?_____________
-# 4. How many reads failed due to low quality, too many Ns, or being too short?_________
-# 5. What is the duplication rate?____________
 
 # Step 4: Trim Adapters Using Cutadapt
 #######################################
 
-#Change the directory to where the trimmed data are stored
+# Change the directory to where the trimmed data are stored.
 cd $WGS_DATA_TRIM_DIR
 
 # Ensure cutadapt is installed.
@@ -133,10 +101,6 @@ conda install bioconda::cutadapt
 # Trim adapters from both ends of the reads.
 cutadapt -u 30 -o all_reads_QC1.fastq all_readsQC.fastq
 cutadapt -u -30 -o all_reads_QC2.fastq all_reads_QC1.fastq
-
-# QUESTION 4: Compare the total base pairs processed in both cutadapt steps.
-# 1. Are the base pairs processed in both steps the same or different? Why?
-# 2. What are the implications of trimming on downstream analysis?
 
 # Step 5: Align Reads to the Reference Genome Using Minimap2
 ############################################################
@@ -149,11 +113,6 @@ cd $WGS_ALIGN_DIR
 conda install bioconda::minimap2
 minimap2 -Y -t 12 -x map-ont -a $WGS_REF_FASTA $WGS_DATA_TRIM_DIR/all_reads_QC2.fastq > all_reads.sam
 
-# QUESTION 5: Inspect the SAM file and describe its characteristic features.
-# 1. What are the characteristic features of a SAM file?
-# 2. What information does each column in the SAM file represent?
-# 3. Why is the SAM file crucial in genome assembly?
-
 # Step 6: Sort the SAM File Using Samtools
 ###########################################
 
@@ -161,29 +120,17 @@ minimap2 -Y -t 12 -x map-ont -a $WGS_REF_FASTA $WGS_DATA_TRIM_DIR/all_reads_QC2.
 conda install bioconda::samtools
 samtools sort -O SAM -o all_reads_sorted.sam all_reads.sam
 
-# QUESTION 6: Why is it necessary to sort the SAM file?
-# 1. What are the benefits of sorting a SAM file before further processing?
-# 2. What problems could arise if the SAM file is not sorted?
-
 # Step 7: Convert SAM to BAM and Sort
 #####################################
 
 # Convert the sorted SAM file to BAM format and sort the BAM file.
 samtools view -bS all_reads_sorted.sam | samtools sort -@ 16 -o all_reads.bam
 
-# QUESTION 7: What is the difference between SAM and BAM files?
-# 1. Why is the conversion from SAM to BAM important?
-# 2. How does the BAM format benefit downstream analyses compared to SAM?
-
 # Step 8: Index the BAM File
 #############################
 
 # Index the BAM file to prepare it for further analysis.
 samtools index all_reads.bam
-
-# QUESTION 8: Why is indexing the BAM file important?
-# 1. How does indexing improve the performance of downstream analyses?
-# 2. What would happen if you skipped this step?
 
 # Step 9: Create a Depth Profile
 ################################
@@ -195,14 +142,10 @@ cd $WGS_DEPTH_DIR
 # Generate a depth profile of the aligned reads.
 samtools mpileup -a -A -Q 0 -d 0 -f $WGS_REF_FASTA $WGS_ALIGN_DIR/all_reads.bam | awk '{print $2, $3, $4}' > all_reads.depth
 
-# QUESTION 9: What does the depth profile represent?
-# 1. Why is the depth of coverage important in genome assembly?
-# 2. How can depth information be used to assess the quality of the alignment?
-
 # Step 10: Variant Calling Using BCFtools
 #########################################
 
-#Install bcftools with conda
+# Install bcftools with conda.
 conda install bioconda::bcftools
 
 # Create a directory to store VCF files.
@@ -212,38 +155,26 @@ cd $WGS_VCF_DIR
 # Call variants using bcftools.
 bcftools mpileup -f $WGS_REF_FASTA $WGS_ALIGN_DIR/all_reads.bam | bcftools call -mv -Oz -o all_reads.vcf.gz
 
-# QUESTION 10: Explain the process of variant calling.
-# 1. What is the significance of identifying variants in the genome assembly process?
-# 2. What do the different flags used in bcftools mpileup and call mean?
-
 # Step 11: Filter the VCF File for High-Quality Variants
 #######################################################
 
 # Filter the VCF file for high-quality variants.
 bcftools filter -i 'DP>20 && AF>0.1' all_reads.vcf.gz -Oz -o all_reads_filtered.vcf.gz
 
-# QUESTION 11: Discuss the criteria used in filtering the VCF file.
-# 1. What do DP and AF represent in the filtering process?
-# 2. Why are these specific thresholds used for filtering?
-
 # Step 12: Create a Consensus Sequence
 ######################################
 
-#you need to first index the VCF file 
+# Index the VCF file.
 bcftools index all_reads_filtered.vcf.gz
 
 # Generate a consensus sequence using the filtered variants.
 bcftools consensus -f $WGS_REF_FASTA all_reads_filtered.vcf.gz > all_reads_consensus_temp.fasta
 
-# Incorporate depth profile information into the consensus sequence:
-##################################################################
-
-# Set variables for depth file and input/output FASTA files
+# Incorporate depth profile information into the consensus sequence.
 depth_file="$WGS_DEPTH_DIR/all_reads.depth"
 input_fasta="all_reads_consensus_temp.fasta"
 output_fasta="all_reads_consensus.fasta"
 
-# Run the AWK script to modify the consensus sequence based on depth
 awk -v depth_file="$depth_file" '
 BEGIN {
     # Load the depth file into an array
@@ -267,16 +198,7 @@ BEGIN {
     }
 }' "$input_fasta" > "$output_fasta"
 
-# QUESTION 12: What is the purpose of generating a consensus sequence?
-# 1. How does the consensus sequence differ from the reference genome?
-# 2. What role does the depth profile play in generating the consensus sequence?
-
 # Step 13: Final Report and Interpretation
 ##########################################
 
 # Summarize the workflow and analyze the generated consensus sequence.
-
-# QUESTION 13:
-# 1. What is the final consensus sequence length?
-# 2. How does the consensus sequence compare to the reference genome?
-# 3. What are the potential implications of the identified variants on the virus's behavior or treatment?
