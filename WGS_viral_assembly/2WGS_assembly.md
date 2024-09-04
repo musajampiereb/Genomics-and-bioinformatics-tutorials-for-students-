@@ -248,9 +248,9 @@ This workflow guides you through downloading raw sequencing data, performing qua
 ## Step 12: Create a Consensus Sequence
 
 #!/bin/bash
-# Consensus Sequence Generation Script
+### Consensus Sequence Generation Script
 
-# Define file paths
+### Define file paths
 
 ```bash
 depth_file="$WGS_DEPTH_DIR/all_reads.depth"
@@ -258,10 +258,10 @@ input_fasta="all_reads_consensus_temp.fasta"
 output_fasta="all_reads_consensus.fasta"
 filtered_consensus="all_reads_consensus_filtered.fasta"
 ```
-# Minimum depth threshold
+### Minimum depth threshold
 min_depth=20
 
-# Filter the depth profile and prepare regions to include
+### Filter the depth profile and prepare regions to include
 
 ```bash
 awk -v min_depth=$min_depth '
@@ -287,11 +287,11 @@ BEGIN {
 }' "$input_fasta" > "$output_fasta"
 ```
 
-# Install ivar if not already installed
+### Install ivar if not already installed
 ```bash
 conda install -c bioconda ivar
 ```
-# Generate consensus sequence using ivar
+### Generate consensus sequence using ivar
 ```bash
 ivar consensus -t 0 -i $WGS_ALIGN_DIR/all_reads.bam -f $WGS_REF_FASTA -b $WGS_VCF_DIR/all_reads_filtered.vcf.gz -o $filtered_consensus
 
