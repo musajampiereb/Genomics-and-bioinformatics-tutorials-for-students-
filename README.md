@@ -1,4 +1,4 @@
-# Genomics and Bioinformatics Tutorials for Students
+# Genomics and Bioinformatics Tutorials for Students & Public health professionals
 
 Welcome to the **Genomics and Bioinformatics Tutorials** repository! This repository is designed to support students in their home assignments, practical exercises, and self-paced learning in genomics and bioinformatics. Whether you’re new to the field or looking to deepen your understanding, these resources are crafted to help you succeed.
 
