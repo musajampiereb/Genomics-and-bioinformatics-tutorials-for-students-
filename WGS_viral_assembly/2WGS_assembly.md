@@ -1,206 +1,282 @@
-```bash
-#!/bin/bash
-#######################################################################
-## Whole Genome Sequence Assembly Workflow for Viral Genome (MPOX)  ##
-#######################################################################
+# Whole Genome Sequence Assembly Workflow for Viral Genome (MPOX)
 
-# NOTE1: This assignment is based on published raw data from the MPOX outbreak in Kamituga, South Kivu.
-# Access the publication here: https://www.eurosurveillance.org/content/10.2807/1560-7917.ES.2024.29.11.2400106 
+**NOTE1:** This assignment is based on published raw data from the MPOX outbreak in Kamituga, South Kivu.  
+Access the publication here: [https://www.eurosurveillance.org/content/10.2807/1560-7917.ES.2024.29.11.2400106](https://www.eurosurveillance.org/content/10.2807/1560-7917.ES.2024.29.11.2400106)  
 
-# NOTE2: This workflow requires "conda" to be installed and running on your computer 
+**NOTE2:** This workflow requires "conda" installed and running on your computer.  
 
-# This workflow guides you through downloading raw sequencing data, performing quality control, trimming, alignment, 
-# variant calling, and finally creating a consensus sequence for the MPOX virus.
+This workflow guides you through downloading raw sequencing data, performing quality control, trimming, alignment, variant calling, and finally creating a consensus sequence for the MPOX virus.
 
-# Step 0: Create and activate Environment, set up Working Directories, and Environment Variables
-###############################################################
-# Create conda environment
-conda create -n wgs_env python=3.8
+## Step 0: Create and Activate Environment, Set Up Working Directories, and Environment Variables
 
-# Activate the created conda environment 
-conda activate wgs_env
+1. Create conda environment
 
-# Create a working directory and set the ‘WGS_HOME’ environment variable.
-mkdir -p ~/workspace/bioinformatics/
-export WGS_HOME=~/workspace/bioinformatics
+    ```bash
+    conda create -n wgs_env python=3.8
+    ```
 
-# Ensure that the working directory is set correctly.
-echo "Working Directory: $WGS_HOME"
+2. Activate the created conda environment
 
-# Set up additional environment variables for different directories in the workflow.
-export WGS_DATA_DIR=$WGS_HOME/data
-export WGS_DATA_TRIM_DIR=$WGS_DATA_DIR/trimmed
-export WGS_REFS_DIR=$WGS_HOME/refs
-export WGS_REF_FASTA=$WGS_REFS_DIR/mpox_ref.fa
-export WGS_ALIGN_DIR=$WGS_HOME/alignments/minimap2
-export WGS_DEPTH_DIR=$WGS_HOME/depth
-export WGS_VCF_DIR=$WGS_HOME/vcf
+    ```bash
+    conda activate wgs_env
+    ```
 
-# Ensure that all environment variables are correctly defined.
-env | grep WGS
+3. Create a working directory and set the `WGS_HOME` environment variable
 
-# Step 1: Download Raw Data and Reference Genome
-################################################
+    ```bash
+    mkdir -p ~/workspace/bioinformatics/
+    export WGS_HOME=~/workspace/bioinformatics
+    ```
 
-# Create the necessary directory for raw data and navigate to it.
-mkdir -p $WGS_DATA_DIR
-cd $WGS_DATA_DIR
+4. Ensure that the working directory is set correctly
 
-# Download the raw FASTQ data files.
-wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR126/001/ERR12670101/ERR12670101.fastq.gz
-wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR126/004/ERR12670104/ERR12670104.fastq.gz
-wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR126/005/ERR12670105/ERR12670105.fastq.gz
+    ```bash
+    echo "Working Directory: $WGS_HOME"
+    ```
 
-# Unzip the downloaded FASTQ files for inspection.
-gunzip *.fastq.gz
+5. Set up additional environment variables for different directories in the workflow
 
-# Rename the FASTQ file for easier reference in subsequent steps.
-mv ERR12670104.fastq all_reads.fastq
+    ```bash
+    export WGS_DATA_DIR=$WGS_HOME/data
+    export WGS_DATA_TRIM_DIR=$WGS_DATA_DIR/trimmed
+    export WGS_REFS_DIR=$WGS_HOME/refs
+    export WGS_REF_FASTA=$WGS_REFS_DIR/mpox_ref.fa
+    export WGS_ALIGN_DIR=$WGS_HOME/alignments/minimap2
+    export WGS_DEPTH_DIR=$WGS_HOME/depth
+    export WGS_VCF_DIR=$WGS_HOME/vcf
+    ```
 
-# Download the reference genome for the MPOX virus.
-cd $WGS_REFS_DIR
-wget https://www.ebi.ac.uk/ena/browser/api/fasta/JX878425.1?download=true -O mpox_ref.fa
+6. Ensure that all environment variables are correctly defined
 
-# Step 2: Quality Control (QC) Check Using NanoPlot
-###################################################
+    ```bash
+    env | grep WGS
+    ```
 
-# Go back to the folder that stores your data.
-cd $WGS_DATA_DIR
+## Step 1: Download Raw Data and Reference Genome
 
-# Ensure that NanoPlot is installed. If not, install it via conda.
-conda install bioconda::nanoplot
+1. Create the necessary directory for raw data and navigate to it
 
-# Perform a QC check on the FASTQ file using NanoPlot.
-gzip all_reads.fastq
-NanoPlot --fastq all_reads.fastq.gz -o QC_REPORT --plots kde
+    ```bash
+    mkdir -p $WGS_DATA_DIR
+    cd $WGS_DATA_DIR
+    ```
 
-# Step 3: Data Filtering Based on Quality Score Using fastp
-###########################################################
+2. Download the raw FASTQ data files
 
-# Ensure the FASTQ file is unzipped.
-gunzip all_reads.fastq.gz
+    ```bash
+    wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR126/001/ERR12670101/ERR12670101.fastq.gz
+    wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR126/004/ERR12670104/ERR12670104.fastq.gz
+    wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR126/005/ERR12670105/ERR12670105.fastq.gz
+    ```
 
-# Install FASTP tool 
-conda install bioconda::fastp
+3. Unzip the downloaded FASTQ files for inspection
 
-# Create a directory to store quality control reports and navigate to it.
-mkdir -p $WGS_DATA_TRIM_DIR
+    ```bash
+    gunzip *.fastq.gz
+    ```
 
-# Filter the reads based on read quality with a quality score of 9.
-fastp -w 48 -i all_reads.fastq -l 100 -q 09 -o $WGS_DATA_TRIM_DIR/all_readsQC.fastq
+4. Rename the FASTQ file for easier reference in subsequent steps
 
-# Step 4: Trim Adapters Using Cutadapt
-#######################################
+    ```bash
+    mv ERR12670104.fastq all_reads.fastq
+    ```
 
-# Change the directory to where the trimmed data are stored.
-cd $WGS_DATA_TRIM_DIR
+5. Download the reference genome for the MPOX virus
 
-# Ensure cutadapt is installed.
-conda install bioconda::cutadapt
+    ```bash
+    cd $WGS_REFS_DIR
+    wget https://www.ebi.ac.uk/ena/browser/api/fasta/JX878425.1?download=true -O mpox_ref.fa
+    ```
 
-# Trim adapters from both ends of the reads.
-cutadapt -u 30 -o all_reads_QC1.fastq all_readsQC.fastq
-cutadapt -u -30 -o all_reads_QC2.fastq all_reads_QC1.fastq
+## Step 2: Quality Control (QC) Check Using NanoPlot
 
-# Step 5: Align Reads to the Reference Genome Using Minimap2
-############################################################
+1. Ensure that NanoPlot is installed. If not, install it via conda
 
-# Create the alignment directory and navigate to it.
-mkdir -p $WGS_ALIGN_DIR
-cd $WGS_ALIGN_DIR
+    ```bash
+    conda install bioconda::nanoplot
+    ```
 
-# Align the reads to the reference genome using minimap2 and generate a SAM file.
-conda install bioconda::minimap2
-minimap2 -Y -t 12 -x map-ont -a $WGS_REF_FASTA $WGS_DATA_TRIM_DIR/all_reads_QC2.fastq > all_reads.sam
+2. Perform a QC check on the FASTQ file using NanoPlot
 
-# Step 6: Sort the SAM File Using Samtools
-###########################################
+    ```bash
+    gzip all_reads.fastq
+    NanoPlot --fastq all_reads.fastq.gz -o QC_REPORT --plots kde
+    ```
 
-# Sort the SAM file using samtools.
-conda install bioconda::samtools
-samtools sort -O SAM -o all_reads_sorted.sam all_reads.sam
+## Step 3: Data Filtering Based on Quality Score Using fastp
 
-# Step 7: Convert SAM to BAM and Sort
-#####################################
+1. Unzip the FASTQ file
 
-# Convert the sorted SAM file to BAM format and sort the BAM file.
-samtools view -bS all_reads_sorted.sam | samtools sort -@ 16 -o all_reads.bam
+    ```bash
+    gunzip all_reads.fastq.gz
+    ```
 
-# Step 8: Index the BAM File
-#############################
+2. Install `fastp` via conda
 
-# Index the BAM file to prepare it for further analysis.
-samtools index all_reads.bam
+    ```bash
+    conda install bioconda::fastp
+    ```
 
-# Step 9: Create a Depth Profile
-################################
+3. Create a directory for trimmed data
 
-# Create a directory to store depth information.
-mkdir -p $WGS_DEPTH_DIR
-cd $WGS_DEPTH_DIR
+    ```bash
+    mkdir -p $WGS_DATA_TRIM_DIR
+    ```
 
-# Generate a depth profile of the aligned reads.
-samtools mpileup -a -A -Q 0 -d 0 -f $WGS_REF_FASTA $WGS_ALIGN_DIR/all_reads.bam | awk '{print $2, $3, $4}' > all_reads.depth
+4. Filter the FASTQ data using `fastp`
 
-# Step 10: Variant Calling Using BCFtools
-#########################################
+    ```bash
+    fastp -w 48 -i all_reads.fastq -l 100 -q 09 -o $WGS_DATA_TRIM_DIR/all_readsQC.fastq
+    ```
 
-# Install bcftools with conda.
-conda install bioconda::bcftools
+## Step 4: Trim Adapters Using Cutadapt
 
-# Create a directory to store VCF files.
-mkdir -p $WGS_VCF_DIR
-cd $WGS_VCF_DIR
+1. Navigate to the trimmed data directory
 
-# Call variants using bcftools.
-bcftools mpileup -f $WGS_REF_FASTA $WGS_ALIGN_DIR/all_reads.bam | bcftools call -mv -Oz -o all_reads.vcf.gz
+    ```bash
+    cd $WGS_DATA_TRIM_DIR
+    ```
 
-# Step 11: Filter the VCF File for High-Quality Variants
-#######################################################
+2. Install `cutadapt` via conda
 
-# Filter the VCF file for high-quality variants.
-bcftools filter -i 'DP>20 && AF>0.1' all_reads.vcf.gz -Oz -o all_reads_filtered.vcf.gz
+    ```bash
+    conda install bioconda::cutadapt
+    ```
 
-# Step 12: Create a Consensus Sequence
-######################################
+3. Trim adapters from the FASTQ data using `cutadapt`
 
-# Index the VCF file.
-bcftools index all_reads_filtered.vcf.gz
+    ```bash
+    cutadapt -u 30 -o all_reads_QC1.fastq all_readsQC.fastq
+    cutadapt -u -30 -o all_reads_QC2.fastq all_reads_QC1.fastq
+    ```
 
-# Generate a consensus sequence using the filtered variants.
-bcftools consensus -f $WGS_REF_FASTA all_reads_filtered.vcf.gz > all_reads_consensus_temp.fasta
+## Step 5: Align Reads to the Reference Genome Using Minimap2
 
-# Incorporate depth profile information into the consensus sequence.
-depth_file="$WGS_DEPTH_DIR/all_reads.depth"
-input_fasta="all_reads_consensus_temp.fasta"
-output_fasta="all_reads_consensus.fasta"
+1. Create a directory for alignments and navigate to it
 
-awk -v depth_file="$depth_file" '
-BEGIN {
-    # Load the depth file into an array
-    while ((getline < depth_file) > 0) {
-        depth[$2] = $3
-    }
-}
-{
-    if (/^>/) {
-        # Print the header lines as they are
-        print $0
-    } else {
-        seq = $0
-        for (i = 1; i <= length(seq); i++) {
-            # Only replace with 'N' if the depth is less than 20
-            if (depth[i] < 20) {
-                seq = substr(seq, 1, i-1) "N" substr(seq, i+1)
-            }
+    ```bash
+    mkdir -p $WGS_ALIGN_DIR
+    cd $WGS_ALIGN_DIR
+    ```
+
+2. Install `minimap2` via conda
+
+    ```bash
+    conda install bioconda::minimap2
+    ```
+
+3. Align reads to the reference genome using `minimap2`
+
+    ```bash
+    minimap2 -Y -t 12 -x map-ont -a $WGS_REF_FASTA $WGS_DATA_TRIM_DIR/all_reads_QC2.fastq > all_reads.sam
+    ```
+
+## Step 6: Sort the SAM File Using Samtools
+
+1. Install `samtools` via conda
+
+    ```bash
+    conda install bioconda::samtools
+    ```
+
+2. Sort the SAM file
+
+    ```bash
+    samtools sort -O SAM -o all_reads_sorted.sam all_reads.sam
+    ```
+
+## Step 7: Convert SAM to BAM and Sort
+
+1. Convert the SAM file to BAM format and sort
+
+    ```bash
+    samtools view -bS all_reads_sorted.sam | samtools sort -@ 16 -o all_reads.bam
+    ```
+
+## Step 8: Index the BAM File
+
+1. Index the BAM file
+
+    ```bash
+    samtools index all_reads.bam
+    ```
+
+## Step 9: Create a Depth Profile
+
+1. Create a directory for depth profiles and navigate to it
+
+    ```bash
+    mkdir -p $WGS_DEPTH_DIR
+    cd $WGS_DEPTH_DIR
+    ```
+
+2. Generate a depth profile from the BAM file
+
+    ```bash
+    samtools mpileup -a -A -Q 0 -d 0 -f $WGS_REF_FASTA $WGS_ALIGN_DIR/all_reads.bam | awk '{print $2, $3, $4}' > all_reads.depth
+    ```
+
+## Step 10: Variant Calling Using BCFtools
+
+1. Install `bcftools` via conda
+
+    ```bash
+    conda install bioconda::bcftools
+    ```
+
+2. Create a directory for VCF files and navigate to it
+
+    ```bash
+    mkdir -p $WGS_VCF_DIR
+    cd $WGS_VCF_DIR
+    ```
+
+3. Call variants using `bcftools`
+
+    ```bash
+    bcftools mpileup -f $WGS_REF_FASTA $WGS_ALIGN_DIR/all_reads.bam | bcftools call -mv -Oz -o all_reads.vcf.gz
+    ```
+
+## Step 11: Filter the VCF File for High-Quality Variants
+
+1. Filter the VCF file to retain high-quality variants
+
+    ```bash
+    bcftools filter -i 'DP>20 && AF>0.1' all_reads.vcf.gz -Oz -o all_reads_filtered.vcf.gz
+    ```
+
+## Step 12: Create a Consensus Sequence
+
+1. Index the filtered VCF file
+
+    ```bash
+    bcftools index all_reads_filtered.vcf.gz
+    ```
+
+2. Generate a consensus sequence
+
+    ```bash
+    bcftools consensus -f $WGS_REF_FASTA all_reads_filtered.vcf.gz > all_reads_consensus_temp.fasta
+    ```
+
+3. Refine the consensus sequence based on depth information
+
+    ```bash
+    depth_file="$WGS_DEPTH_DIR/all_reads.depth"
+    input_fasta="all_reads_consensus_temp.fasta"
+    output_fasta="all_reads_consensus.fasta"
+
+    awk -v depth_file="$depth_file" '
+    BEGIN {
+        while ((getline < depth_file) > 0) {
+            depth[$2] = $3
         }
-        print seq
     }
-}' "$input_fasta" > "$output_fasta"
-
-# Step 13: Final Report and Interpretation
-##########################################
-
-# Summarize the workflow and analyze the generated consensus sequence.
-
-
+    {
+        if (/^>/) {
+            print $0
+        } else {
+            seq = $0
+            for (i = 1; i <= length(seq); i++) {
+                if (depth[i] < 20) {
+                    seq = substr(seq, 1, i-1) "
