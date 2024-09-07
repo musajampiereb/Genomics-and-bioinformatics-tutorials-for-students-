@@ -102,6 +102,7 @@ This workflow guides you through downloading raw sequencing data, performing qua
     cd $WGS_DATA_DIR
     gzip all_reads.fastq
     NanoPlot --fastq all_reads.fastq.gz -o QC_REPORT --plots kde
+    open QC_REPORT
     ```
 
 ## Step 3: Data Filtering Based on Quality Score Using fastp
