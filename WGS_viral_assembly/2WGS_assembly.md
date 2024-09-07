@@ -99,6 +99,7 @@ This workflow guides you through downloading raw sequencing data, performing qua
 2. Perform a QC check on the FASTQ file using NanoPlot
 
     ```bash
+    cd $WGS_DATA_DIR
     gzip all_reads.fastq
     NanoPlot --fastq all_reads.fastq.gz -o QC_REPORT --plots kde
     ```
