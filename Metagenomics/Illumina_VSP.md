@@ -42,12 +42,14 @@ SCRIPTS="$WORKING_DIR/Scripts"
 CLEAN_READS="$WORKING_DIR/cleanReads"
 FASTP_OUT_DIR="$WORKING_DIR/fastp_out"
 KAIJU_DIR="$WORKING_DIR/kaiju_dir"
+READS_DIR="$WORKING_DIR/reads_dir"
 DBs="/path/to/kaijudb"  # Replace with actual path to Kaiju databases
 
 # Create directories if they don't exist
 mkdir -p "$FASTP_OUT_DIR"
 mkdir -p "$CLEAN_READS"
 mkdir -p "$KAIJU_DIR"
+mkdir -p "$READS_DIR"
 ```
 ### 2. Quality Control with ```fastp```
 
