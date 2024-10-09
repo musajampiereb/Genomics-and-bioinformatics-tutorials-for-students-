@@ -115,4 +115,42 @@ spades.py -o "$base" --meta \
           -2 "nonHost/${base}_reads_unmapped.2.fastq" \
           --only-assembler -t "$threads"
 ```
-### 5. 
+### 5. Taxonomic Classification with Kaiju
+
+Run ```Kaiju``` to classify the assembled contigs into taxonomic categories based on the reference database.
+
+```bash
+# Run Kaiju for taxonomic classification
+kaiju -t "$DBs/nodes.dmp" \
+      -f "$DBs/viruses/kaiju_db_viruses.fmi" \
+      -i "${base}/megahit_out/final.contigs.fa" -z "$threads" \
+      -o "$base/${base}_kaiju.out"
+```
+Add taxon names to the Kaiju output:
+
+```bash
+# Add taxon names to Kaiju output
+kaiju-addTaxonNames -t "$DBs/nodes.dmp" \
+                    -n "$DBs/names.dmp" \
+                    -i "$base/${base}_kaiju.out" \
+                    -o "$base/${base}_kaiju-names.out" -p
+```
+
+Filter classified sequences:
+
+```bash
+# Extract classified sequences from Kaiju output
+grep '^C' "$base/${base}_kaiju-names.out" | sed 's/;/\t/g' > "$base/${base}_classified-kaiju.tmp"
+awk -v base="$base" '{OFS="\t"; print base, $0}' "$base/${base}_classified-kaiju.tmp" > "$base/${base}_classified-kaiju.out"
+rm "$base/${base}_classified-kaiju.tmp"
+```
+### 6. Compile Results
+
+Finally, compile the results from all samples into a single file for further analysis.
+
+```bash
+# Compile results across all samples
+cat */*_classified-kaiju.out | awk '$2 == "C"' > allSamples_kaiju_results.txt
+
+echo "Metagenomics analysis pipeline completed!"
+```
