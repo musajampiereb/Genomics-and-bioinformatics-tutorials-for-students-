@@ -48,3 +48,16 @@ DBs="/path/to/kaijudb"  # Replace with actual path to Kaiju databases
 mkdir -p "$FASTP_OUT_DIR"
 mkdir -p "$CLEAN_READS"
 mkdir -p "$KAIJU_DIR"
+```
+### 2. Quality Control with ```fastp```
+
+Trim adapters and filter low-quality bases using fastp for high-quality data processing.
+
+```bash
+# Run fastp for quality control
+
+$SCRIPTS/run_fastp.sh" -i "$reads_dir" -o "$FASTP_OUT_DIR" -c "$threads"
+
+
+
+
