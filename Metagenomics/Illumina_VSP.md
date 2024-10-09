@@ -1,0 +1,50 @@
+# Illumina Metagenomics Pipeline for Viral Surveillance Project (VSP) Data
+
+This document describes a bioinformatics pipeline for analyzing Illumina sequencing data as part of a Viral Surveillance Project (VSP). The pipeline performs quality control, host genome filtering, and metagenomic classification using tools like **fastp**, **Bowtie2**, and **Kaiju**.
+
+---
+
+## Pipeline Overview
+
+1. **Quality Control**: Trimming and filtering of raw sequencing reads using `fastp`.
+2. **Host Genome Removal**: Alignment of reads to the host genome (e.g., human) using `Bowtie2` to filter out host sequences.
+3. **Metagenomic Classification**: Classification of non-host reads using `Kaiju` to identify viral and microbial sequences.
+
+---
+
+## Prerequisites
+
+### Tools Required
+
+- **fastp**: For trimming and quality control of raw sequencing reads.
+- **Bowtie2**: For aligning reads to a host genome and filtering out host sequences.
+- **Samtools**: For handling SAM/BAM files produced by `Bowtie2`.
+- **Kaiju**: For metagenomic classification of non-host reads.
+- **SPAdes**: For genome assembly (optional).
+
+### Input Data
+
+- Raw Illumina sequencing reads in FASTQ format.
+- Host reference genome (e.g., human genome) in FASTA format.
+
+---
+
+## Pipeline Workflow
+
+### 1. Directory Setup
+
+The pipeline begins by creating necessary directories to store intermediate and output files.
+
+```bash
+# Define directories
+WORKING_DIR=$(pwd)
+SCRIPTS="$HOME/Scripts"
+CLEAN_READS="$WORKING_DIR/cleanReads"
+FASTP_OUT_DIR="$WORKING_DIR/fastp_out"
+KAIJU_DIR="$WORKING_DIR/kaiju_dir"
+DBs="/path/to/kaijudb"  # Replace with actual path to Kaiju databases
+
+# Create directories if they don't exist
+mkdir -p "$FASTP_OUT_DIR"
+mkdir -p "$CLEAN_READS"
+mkdir -p "$KAIJU_DIR"
