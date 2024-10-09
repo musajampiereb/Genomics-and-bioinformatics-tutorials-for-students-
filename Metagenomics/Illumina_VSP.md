@@ -58,7 +58,7 @@ Trim adapters and filter low-quality bases using ```fastp``` for high-quality da
 ```bash
 # Run fastp for quality control
 threads=12
-"$SCRIPTS/run_fastp.sh" -i "$reads_dir" -o "$FASTP_OUT_DIR" -c "$threads"
+"$SCRIPTS/run_fastp.sh" -i "$READS_DIR" -o "$FASTP_OUT_DIR" -c "$threads"
 ```
 - ```-i``` specifies the input reads directory.
 - ```-o``` specifies the output directory for cleaned reads.
