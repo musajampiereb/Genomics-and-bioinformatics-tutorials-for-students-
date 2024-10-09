@@ -57,7 +57,45 @@ Trim adapters and filter low-quality bases using fastp for high-quality data pro
 # Run fastp for quality control
 
 $SCRIPTS/run_fastp.sh" -i "$reads_dir" -o "$FASTP_OUT_DIR" -c "$threads"
+```
+```-i``` specifies the input reads directory.
+```-o``` specifies the output directory for cleaned reads.
+```-c``` specifies the number of threads to use.
 
+After running fastp, move the cleaned reads to a designated directory:
 
+```bash
+# Move and compress cleaned reads
+mv "$FASTP_OUT_DIR"/*/*.fastq "$CLEAN_READS"
+gzip "$CLEAN_READS"/*.fastq
+chmod +rwx "$CLEAN_READS"/*.fastq
+```
+### 3. Host Genome Removal with Bowtie2
 
+Remove reads that map to the host genome using Bowtie2 to ensure that only non-host reads remain for metagenomic analysis.
 
+```bash
+# Build Bowtie2 index for host genome
+bowtie2-build "$reference_genome" "$reference_genome_filename" --threads "$threads"
+
+# Create output directory for non-host reads
+mkdir -p "nonHost"
+
+# Map reads to host genome and extract unmapped reads
+for fwd_file in "$CLEAN_READS"/*.fastp_1.fastq.gz; do
+  base=$(basename "$fwd_file" .fastp_1.fastq.gz)
+  rev_file="$CLEAN_READS/${base}.fastp_2.fastq.gz"
+  
+  # Output files
+  sam_output="${base}/${base}.sam"
+  unmapped_output="nonHost/${base}_reads_unmapped.fastq"
+  
+  # Run Bowtie2
+  bowtie2 -1 "$fwd_file" -2 "$rev_file" -S "$sam_output" --un-conc "$unmapped_output" --threads "$threads" -x "$reference_genome_filename"
+  
+  echo "Mapping completed for $base"
+  
+  # Print mapping statistics
+  samtools flagstat -@ "$threads" "$base/${base}.sam" > "$base/${base}.flagstat"
+done
+```
