@@ -88,9 +88,11 @@ gunzip Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz
 
 reference_genome=$WORKING_DIR/reference_genomes/human
 
+reference_genome_filename=$WORKING_DIR/index
+
 # Build Bowtie2 index for host genome
 
-bowtie2-build "$reference_genome" "$reference_genome_filename" --threads "$threads"
+bowtie2-build "$reference_genome" "$WORKING_DIR/index" --threads "$threads"
 
 # Create output directory for non-host reads
 mkdir -p "nonHost"
@@ -105,7 +107,7 @@ for fwd_file in "$CLEAN_READS"/*.fastp_1.fastq.gz; do
   unmapped_output="nonHost/${base}_reads_unmapped.fastq"
   
   # Run Bowtie2
-  bowtie2 -1 "$fwd_file" -2 "$rev_file" -S "$sam_output" --un-conc "$unmapped_output" --threads "$threads" -x "$reference_genome_filename"
+  bowtie2 -1 "$fwd_file" -2 "$rev_file" -S "$sam_output" --un-conc "$unmapped_output" --threads "$threads" -x "$WORKING_DIR/index"
   
   echo "Mapping completed for $base"
   
