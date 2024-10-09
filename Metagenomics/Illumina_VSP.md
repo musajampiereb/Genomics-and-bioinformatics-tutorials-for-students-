@@ -77,42 +77,47 @@ chmod +rwx "$CLEAN_READS"/*.fastq
 Remove reads that map to the host genome using ```Bowtie2``` to ensure that only non-host reads remain for metagenomic analysis.
 
 ```bash
-#Let's first download the human reference genome and store it appropriately
+#!/bin/bash
 
+# Step 1: Create directories for reference genomes and download the human reference genome
 mkdir -p ~/reference_genomes/human
 cd ~/reference_genomes/human
+
+# Download the human reference genome
 wget ftp://ftp.ensembl.org/pub/release-108/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz
 
 # Unzip the genome
 gunzip Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz
 
-reference_genome=$WORKING_DIR/reference_genomes/human
+# Set reference genome path variables
+reference_genome="$HOME/reference_genomes/human/Homo_sapiens.GRCh38.dna.primary_assembly.fa"
+index_prefix="$HOME/reference_genomes/human/index"
 
-reference_genome_filename=$WORKING_DIR/index
+# Step 2: Build Bowtie2 index for host genome
+bowtie2-build "$reference_genome" "$index_prefix" --threads "$threads"
 
-# Build Bowtie2 index for host genome
+# Step 3: Create output directory for non-host reads
+mkdir -p "$HOME/reference_genomes/human/nonHost"
 
-bowtie2-build "$reference_genome" "$WORKING_DIR/index" --threads "$threads"
-
-# Create output directory for non-host reads
-mkdir -p "nonHost"
-
-# Map reads to host genome and extract unmapped reads
+# Step 4: Map reads to host genome and extract unmapped reads
 for fwd_file in "$CLEAN_READS"/*.fastp_1.fastq.gz; do
   base=$(basename "$fwd_file" .fastp_1.fastq.gz)
   rev_file="$CLEAN_READS/${base}.fastp_2.fastq.gz"
-  
+
+  # Create output directory for each sample
+  mkdir -p "$HOME/reference_genomes/human/${base}"
+
   # Output files
   sam_output="${base}/${base}.sam"
   unmapped_output="nonHost/${base}_reads_unmapped.fastq"
-  
-  # Run Bowtie2
-  bowtie2 -1 "$fwd_file" -2 "$rev_file" -S "$sam_output" --un-conc "$unmapped_output" --threads "$threads" -x "$WORKING_DIR/index"
-  
+
+  # Step 5: Run Bowtie2
+  bowtie2 -1 "$fwd_file" -2 "$rev_file" -S "$HOME/reference_genomes/human/$sam_output" --un-conc "$HOME/reference_genomes/human/$unmapped_output" --threads 12 -x "$index_prefix"
+
   echo "Mapping completed for $base"
-  
-  # Print mapping statistics
-  samtools flagstat -@ "$threads" "$base/${base}.sam" > "$base/${base}.flagstat"
+
+  # Step 6: Print mapping statistics
+  samtools flagstat -@ "$threads" "$HOME/reference_genomes/human/$sam_output" > "$HOME/reference_genomes/human/${base}/${base}.flagstat"
 done
 ```
 ### 4. Metagenomic Assembly
