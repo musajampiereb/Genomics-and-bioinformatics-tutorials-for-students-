@@ -101,7 +101,7 @@ done
 ```
 ### 4. Metagenomic Assembly
 
-Use either Megahit or SPAdes to assemble the non-host reads into contigs.
+Use either ```Megahit``` or ```SPAdes``` to assemble the non-host reads into contigs.
 
 ```bash
 # Assemble non-host reads with Megahit
@@ -115,3 +115,4 @@ spades.py -o "$base" --meta \
           -2 "nonHost/${base}_reads_unmapped.2.fastq" \
           --only-assembler -t "$threads"
 ```
+### 5. 
