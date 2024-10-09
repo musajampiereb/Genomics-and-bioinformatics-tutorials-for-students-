@@ -38,7 +38,7 @@ The pipeline begins by creating necessary directories to store intermediate and 
 ```bash 
 # Define directories
 WORKING_DIR=$(pwd)
-SCRIPTS="$HOME/Scripts"
+SCRIPTS="$WORKING_DIR/Scripts"
 CLEAN_READS="$WORKING_DIR/cleanReads"
 FASTP_OUT_DIR="$WORKING_DIR/fastp_out"
 KAIJU_DIR="$WORKING_DIR/kaiju_dir"
