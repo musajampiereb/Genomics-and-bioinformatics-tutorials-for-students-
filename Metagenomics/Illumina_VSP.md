@@ -58,9 +58,9 @@ Trim adapters and filter low-quality bases using fastp for high-quality data pro
 
 $SCRIPTS/run_fastp.sh" -i "$reads_dir" -o "$FASTP_OUT_DIR" -c "$threads"
 ```
-```-i``` specifies the input reads directory.
-```-o``` specifies the output directory for cleaned reads.
-```-c``` specifies the number of threads to use.
+-```-i``` specifies the input reads directory.
+-```-o``` specifies the output directory for cleaned reads.
+-```-c``` specifies the number of threads to use.
 
 After running fastp, move the cleaned reads to a designated directory:
 
