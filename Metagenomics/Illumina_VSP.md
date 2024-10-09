@@ -35,7 +35,7 @@ This document describes a bioinformatics pipeline for analyzing Illumina sequenc
 
 The pipeline begins by creating necessary directories to store intermediate and output files.
 
-```bash
+```bash 
 # Define directories
 WORKING_DIR=$(pwd)
 SCRIPTS="$HOME/Scripts"
