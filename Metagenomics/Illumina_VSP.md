@@ -84,13 +84,13 @@ mkdir -p ~/reference_genomes/human
 cd ~/reference_genomes/human
 
 # Download the human reference genome
-wget ftp://ftp.ensembl.org/pub/release-108/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz
+wget http://hgdownload.cse.ucsc.edu/goldenPath/hg38/bigZips/hg38.fa.gz
 
 # Unzip the genome
-gunzip Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz
+gunzip hg38.fa.gz
 
 # Set reference genome path variables
-reference_genome="$HOME/reference_genomes/human/Homo_sapiens.GRCh38.dna.primary_assembly.fa"
+reference_genome="$HOME/reference_genomes/human/hg38.fa.gz"
 index_prefix="$HOME/reference_genomes/human/index"
 
 # Step 2: Build Bowtie2 index for host genome
