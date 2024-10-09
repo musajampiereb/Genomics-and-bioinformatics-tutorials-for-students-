@@ -117,7 +117,7 @@ for fwd_file in "$CLEAN_READS"/*.fastp_1.fastq.gz; do
   echo "Mapping completed for $base"
 
   # Step 6: Print mapping statistics
-  samtools flagstat -@ "$threads" "$HOME/reference_genomes/human/$sam_output" > "$WORKING_DIR/reference_genomes/human/${base}/${base}.flagstat"
+  samtools flagstat -@ "$threads" "$WORKING_DIR/reference_genomes/human/$sam_output" > "$WORKING_DIR/reference_genomes/human/${base}/${base}.flagstat"
 done
 ```
 ### 4. Metagenomic Assembly
