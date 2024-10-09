@@ -77,7 +77,19 @@ chmod +rwx "$CLEAN_READS"/*.fastq
 Remove reads that map to the host genome using ```Bowtie2``` to ensure that only non-host reads remain for metagenomic analysis.
 
 ```bash
+#Let's first download the human reference genome and store it appropriately
+
+mkdir -p ~/reference_genomes/human
+cd ~/reference_genomes/human
+wget ftp://ftp.ensembl.org/pub/release-108/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz
+
+# Unzip the genome
+gunzip Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz
+
+reference_genome=$WORKING_DIR/reference_genomes/human
+
 # Build Bowtie2 index for host genome
+
 bowtie2-build "$reference_genome" "$reference_genome_filename" --threads "$threads"
 
 # Create output directory for non-host reads
