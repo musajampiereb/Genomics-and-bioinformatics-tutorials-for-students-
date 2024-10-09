@@ -99,3 +99,19 @@ for fwd_file in "$CLEAN_READS"/*.fastp_1.fastq.gz; do
   samtools flagstat -@ "$threads" "$base/${base}.sam" > "$base/${base}.flagstat"
 done
 ```
+### 4. Metagenomic Assembly
+
+Use either Megahit or SPAdes to assemble the non-host reads into contigs.
+
+```bash
+# Assemble non-host reads with Megahit
+megahit -1 "nonHost/${base}_reads_unmapped.1.fastq" \
+        -2 "nonHost/${base}_reads_unmapped.2.fastq" \
+        -t "$threads" -o "$base/megahit_out"
+
+# Alternatively, assemble with SPAdes
+spades.py -o "$base" --meta \
+          -1 "nonHost/${base}_reads_unmapped.1.fastq" \
+          -2 "nonHost/${base}_reads_unmapped.2.fastq" \
+          --only-assembler -t "$threads"
+```
