@@ -90,14 +90,14 @@ wget http://hgdownload.cse.ucsc.edu/goldenPath/hg38/bigZips/hg38.fa.gz
 gunzip hg38.fa.gz
 
 # Set reference genome path variables
-reference_genome="$HOME/reference_genomes/human/hg38.fa.gz"
-index_prefix="$HOME/reference_genomes/human/index"
+reference_genome="$WORKING_DIR/reference_genomes/human/hg38.fa.gz"
+index_prefix="$WORKING_DIR/reference_genomes/human/index"
 
 # Step 2: Build Bowtie2 index for host genome
 bowtie2-build "$reference_genome" "$index_prefix" --threads "$threads"
 
 # Step 3: Create output directory for non-host reads
-mkdir -p "$HOME/reference_genomes/human/nonHost"
+mkdir -p "$WORKING_DIR/reference_genomes/human/nonHost"
 
 # Step 4: Map reads to host genome and extract unmapped reads
 for fwd_file in "$CLEAN_READS"/*.fastp_1.fastq.gz; do
@@ -105,19 +105,19 @@ for fwd_file in "$CLEAN_READS"/*.fastp_1.fastq.gz; do
   rev_file="$CLEAN_READS/${base}.fastp_2.fastq.gz"
 
   # Create output directory for each sample
-  mkdir -p "$HOME/reference_genomes/human/${base}"
+  mkdir -p "$WORKING_DIR/reference_genomes/human/${base}"
 
   # Output files
   sam_output="${base}/${base}.sam"
   unmapped_output="nonHost/${base}_reads_unmapped.fastq"
 
   # Step 5: Run Bowtie2
-  bowtie2 -1 "$fwd_file" -2 "$rev_file" -S "$HOME/reference_genomes/human/$sam_output" --un-conc "$HOME/reference_genomes/human/$unmapped_output" --threads 12 -x "$index_prefix"
+  bowtie2 -1 "$fwd_file" -2 "$rev_file" -S "$WORKING_DIR/reference_genomes/human/$sam_output" --un-conc "$WORKING_DIR/reference_genomes/human/$unmapped_output" --threads 12 -x "$index_prefix"
 
   echo "Mapping completed for $base"
 
   # Step 6: Print mapping statistics
-  samtools flagstat -@ "$threads" "$HOME/reference_genomes/human/$sam_output" > "$HOME/reference_genomes/human/${base}/${base}.flagstat"
+  samtools flagstat -@ "$threads" "$HOME/reference_genomes/human/$sam_output" > "$WORKING_DIR/reference_genomes/human/${base}/${base}.flagstat"
 done
 ```
 ### 4. Metagenomic Assembly
