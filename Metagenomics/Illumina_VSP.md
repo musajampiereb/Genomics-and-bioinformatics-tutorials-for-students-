@@ -51,7 +51,7 @@ mkdir -p "$KAIJU_DIR"
 ```
 ### 2. Quality Control with ```fastp```
 
-Trim adapters and filter low-quality bases using fastp for high-quality data processing.
+Trim adapters and filter low-quality bases using ```fastp``` for high-quality data processing.
 
 ```bash
 # Run fastp for quality control
@@ -70,9 +70,9 @@ mv "$FASTP_OUT_DIR"/*/*.fastq "$CLEAN_READS"
 gzip "$CLEAN_READS"/*.fastq
 chmod +rwx "$CLEAN_READS"/*.fastq
 ```
-### 3. Host Genome Removal with Bowtie2
+### 3. Host Genome Removal with ```Bowtie2```
 
-Remove reads that map to the host genome using Bowtie2 to ensure that only non-host reads remain for metagenomic analysis.
+Remove reads that map to the host genome using ```Bowtie2``` to ensure that only non-host reads remain for metagenomic analysis.
 
 ```bash
 # Build Bowtie2 index for host genome
