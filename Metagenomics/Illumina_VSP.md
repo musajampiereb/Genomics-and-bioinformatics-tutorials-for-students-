@@ -122,7 +122,7 @@ done
 ```
 ### 4. Metagenomic Assembly
 
-Use either ```Megahit``` or ```SPAdes``` to assemble the non-host reads into contigs.
+Use either ```Megahit``` , ```SPAdes``` or ```Velvet1``` (depending on the available memory) to assemble the non-host reads into contigs.
 
 ```bash
 # Assemble non-host reads with Megahit
