@@ -154,7 +154,7 @@ Run ```Kaiju``` to classify the assembled contigs into taxonomic categories base
 # Run Kaiju for taxonomic classification
 kaiju -t "$DBs/nodes.dmp" \
       -f "$DBs/viruses/kaiju_db_viruses.fmi" \
-      -i "${base}/megahit_out/final.contigs.fa" -z "$threads" \
+      -i "${base}/velvet_out/contigs.fa" -z "$threads" \
       -o "$base/${base}_kaiju.out"
 ```
 Add taxon names to the Kaiju output:
