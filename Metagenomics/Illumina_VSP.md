@@ -120,7 +120,7 @@ for fwd_file in "$CLEAN_READS"/*.fastp_1.fastq.gz; do
   samtools flagstat -@ "$threads" "$WORKING_DIR/reference_genomes/human/$sam_output" > "$WORKING_DIR/reference_genomes/human/${base}/${base}.flagstat"
 done
 ```
-### 4. Metagenomic Assembly
+### 4. DeNovo Metagenomic Assembly
 
 Use either ```Megahit``` , ```SPAdes``` or ```Velvet1``` (depending on the available memory) to assemble the non-host reads into contigs.
 
