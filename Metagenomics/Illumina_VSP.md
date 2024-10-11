@@ -50,6 +50,7 @@ mkdir -p "$FASTP_OUT_DIR"
 mkdir -p "$CLEAN_READS"
 mkdir -p "$KAIJU_DIR"
 mkdir -p "$READS_DIR"
+mkdir -p "$DBs"
 ```
 ### 2. Quality Control with ```fastp```
 
