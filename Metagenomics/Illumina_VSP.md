@@ -135,6 +135,16 @@ spades.py -o "$base" --meta \
           -1 "nonHost/${base}_reads_unmapped.1.fastq" \
           -2 "nonHost/${base}_reads_unmapped.2.fastq" \
           --only-assembler -t "$threads"
+
+## When working with a limited memory, please try velvet
+
+# Step 1: Prepare dataset with velveth
+velveth "$base/velvet_out" 31 -shortPaired -fastq -separate \
+    "nonHost/${base}_reads_unmapped.1.fastq" \
+    "nonHost/${base}_reads_unmapped.2.fastq"
+
+# Step 2: Perform assembly with velvetg
+velvetg "$base/velvet_out" -exp_cov auto -cov_cutoff auto -ins_length 300 -min_contig_lgth 200
 ```
 ### 5. Taxonomic Classification with Kaiju
 
