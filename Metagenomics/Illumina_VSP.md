@@ -81,8 +81,8 @@ Remove reads that map to the host genome using ```Bowtie2``` to ensure that only
 #!/bin/bash
 
 # Step 1: Create directories for reference genomes and download the human reference genome
-mkdir -p ~/reference_genomes/human
-cd ~/reference_genomes/human
+mkdir -p $WORKING_DIR/reference_genomes/human
+cd $WORKING_DIR/reference_genomes/human
 
 # Download the human reference genome
 wget http://hgdownload.cse.ucsc.edu/goldenPath/hg38/bigZips/hg38.fa.gz
