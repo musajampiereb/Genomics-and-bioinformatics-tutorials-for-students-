@@ -123,7 +123,7 @@ for fwd_file in "$CLEAN_READS"/*.fastp_1.fastq.gz; do
 done
 ```
 
-## 4. Mapping non-human reads to the reference sequence
+### 4. Mapping non-human reads to the reference sequence
 
 In this step the de-hosted reads are mapped to the reference sequence. Based on the sequence run or target virus the reference sequence can be downloaded from the NCBI-Virus database. The information on which reference (accession number) to be used for the selected virus can be searched in literature normally has a refseq tag in the NCBI search results.
 
@@ -144,7 +144,7 @@ minimap2 -ax sr ${reference} ${r1} ${r2} > ${outfile}
 
 ```
 
-## 5. Processing of the mapped sequences
+### 5. Processing of the mapped sequences
 
 ### Sort SAM file
 ```
@@ -178,11 +178,11 @@ picard MarkDuplicates \
 # Index BAM file:
 samtools index ${outfile}
 ```
-## 6. Variant calling
+### 6. Variant calling
 
 Variant calling is the process of identifying and cataloging the differences between the virus of interest sequencing reads and a reference genome. Variant calling enables us to know the amount of changes occurred on the genome of interest, we get the SNPs. MNPs, idels e.t.c. This step is crucial for knowing/detection of new variants of the virus in question.
 
-### 6.1 variant calling using ivar
+#### 6.1 variant calling using ivar
 
 In case you install iVar through conda environment (ivar_env):
 ```
@@ -194,7 +194,7 @@ infile="aligned.sorted.mapped.markduplicates.bam"
 prefix="out_variants"
 samtools mpileup --reference ${reference} ${infile} | ivar variants -r ${reference} -p ${prefix}
 ```
-### 6.2 variant calling using Lofreq
+#### 6.2 variant calling using Lofreq
 
 In case you install LoFreq through conda environment:
 ```
@@ -205,7 +205,7 @@ infile="aligned.sorted.mapped.bam"
 outfile="variants.vcf"
 lofreq call -f ${reference} -o ${outfile} ${infile}
 
-### 7.0 Consensus Calling
+### 7. Consensus Calling
 
 At this step we now create the consensus fasta file which we will use for downstream analysis, here we call consensus for position with support from at least on read at that position, this is because we use metagenomic sequencing aproach the depth might be very low. if tilling approach was used for sequencing depth for calling consensus can be set to 5 or 10 reads per position.
 
