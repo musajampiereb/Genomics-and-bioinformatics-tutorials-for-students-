@@ -122,3 +122,22 @@ for fwd_file in "$CLEAN_READS"/*.fastp_1.fastq.gz; do
   samtools flagstat -@ "$threads" "$WORKING_DIR/reference_genomes/human/$sam_output" > "$WORKING_DIR/reference_genomes/human/${base}/${base}.flagstat"
 done
 ```
+
+## 2.2 Mapping non-human reads to the reference sequence
+
+In this step the de-hosted reads are mapped to the reference sequence. Based on the sequence run or target virus the reference sequence can be downloaded from the NCBI-Virus database. The information on which reference (accession number) to be used for the selected virus can be searched in literature normally has a refseq tag in the NCBI search results.
+
+### Mapping using minimap2 
+Here is the syntax for mapping non-human reads to the reference sequence using minimap2:
+
+```
+# Define the reference genome:
+reference="path/ to /reference_genome.fasta"
+r1="unclassified_1.fastq"
+r2="unclassified_2.fastq"
+
+# Define aligned SAM file:
+outfile="aligned.sam"
+
+# Run Minimap2 command:
+minimap2 -ax sr ${reference} ${r1} ${r2} > ${outfile}
