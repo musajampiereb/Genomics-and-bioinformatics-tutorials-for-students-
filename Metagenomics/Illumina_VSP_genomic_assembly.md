@@ -146,28 +146,27 @@ minimap2 -ax sr ${reference} ${r1} ${r2} > ${outfile}
 
 # 5 Processing of the mapped sequences
 
-## 5.1 Sorting and indexing mapped reads
-
+### Sort SAM file
 ```
-# Sort SAM:
-infile="aligned.sam"
-outfile="aligned.sorted.bam"
+infile="$WORKING_DIR/aligned.sam"
+outfile="$WORKING_DIR/aligned.sorted.bam"
 samtools sort ${infile} > ${outfile}
 ```
-## 5.2 Discarding un-mapped reads from sorted BAM
+### Discard un-mapped reads
 ```
-infile="aligned.sorted.bam"
-outfile="aligned.sorted.mapped.bam"
+infile="$WORKING_DIR/aligned.sorted.bam"
+outfile="$WORKING_DIR/aligned.sorted.mapped.bam"
 samtools view -F 0x04 -b ${infile} > ${outfile}
-# Index BAM file:
+```
+### Index BAM file
+```
 samtools index ${outfile}
-```
-## 5.3 Marking duplicate reads
-```
-# In case you install Picard through conda:
+
+#In case you install Picard through conda:
+
 conda activate picard
 
-# Tag duplicate reads in BAM file:
+#Tag duplicate reads in BAM file:
 infile="aligned.sorted.mapped.bam"
 outfile="aligned.sorted.mapped.markduplicates.bam"
 outmetrics="aligned.sorted.mapped.markduplicates.metrics.txt"
@@ -179,7 +178,7 @@ picard MarkDuplicates \
 # Index BAM file:
 samtools index ${outfile}
 ```
-## 6.0 Variant calling
+## 6. Variant calling
 
 Variant calling is the process of identifying and cataloging the differences between the virus of interest sequencing reads and a reference genome. Variant calling enables us to know the amount of changes occurred on the genome of interest, we get the SNPs. MNPs, idels e.t.c. This step is crucial for knowing/detection of new variants of the virus in question.
 
