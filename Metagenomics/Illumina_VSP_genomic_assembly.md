@@ -123,7 +123,7 @@ for fwd_file in "$CLEAN_READS"/*.fastp_1.fastq.gz; do
 done
 ```
 
-## 2.2 Mapping non-human reads to the reference sequence
+## 4. Mapping non-human reads to the reference sequence
 
 In this step the de-hosted reads are mapped to the reference sequence. Based on the sequence run or target virus the reference sequence can be downloaded from the NCBI-Virus database. The information on which reference (accession number) to be used for the selected virus can be searched in literature normally has a refseq tag in the NCBI search results.
 
@@ -141,3 +141,83 @@ outfile="aligned.sam"
 
 # Run Minimap2 command:
 minimap2 -ax sr ${reference} ${r1} ${r2} > ${outfile}
+```
+
+# 5 Processing of the mapped sequences
+
+## 5.1 Sorting and indexing mapped reads
+
+```
+# Sort SAM:
+infile="aligned.sam"
+outfile="aligned.sorted.bam"
+samtools sort ${infile} > ${outfile}
+```
+## 5.2 Discarding un-mapped reads from sorted BAM
+```
+infile="aligned.sorted.bam"
+outfile="aligned.sorted.mapped.bam"
+samtools view -F 0x04 -b ${infile} > ${outfile}
+# Index BAM file:
+samtools index ${outfile}
+```
+## 5.3 Marking duplicate reads
+```
+# In case you install Picard through conda:
+conda activate picard
+
+# Tag duplicate reads in BAM file:
+infile="aligned.sorted.mapped.bam"
+outfile="aligned.sorted.mapped.markduplicates.bam"
+outmetrics="aligned.sorted.mapped.markduplicates.metrics.txt"
+picard MarkDuplicates \
+ -Xmx8g \
+ -I ${infile} \
+ -O ${outfile} \
+ -M ${outmetrics}
+# Index BAM file:
+samtools index ${outfile}
+```
+## 6.0 Variant calling
+
+Variant calling is the process of identifying and cataloging the differences between the virus of interest sequencing reads and a reference genome. Variant calling enables us to know the amount of changes occurred on the genome of interest, we get the SNPs. MNPs, idels e.t.c. This step is crucial for knowing/detection of new variants of the virus in question.
+
+### 6.1 variant calling using ivar
+
+# In case you install iVar through conda environment (ivar_env):
+```
+conda activate ivar_env
+```
+# Make a pileup and pipe to iVar to call variants:
+```
+infile="aligned.sorted.mapped.markduplicates.bam"
+prefix="out_variants"
+samtools mpileup --reference ${reference} ${infile} | ivar variants -r ${reference} -p ${prefix}
+```
+### 4.2 variant calling using Lofreq
+# In case you install LoFreq through conda environment :
+```
+conda activate lofreq_env
+```
+# Call variants
+infile="aligned.sorted.mapped.markduplicates.bam"
+outfile="variants.vcf"
+lofreq call -f ${reference} -o ${outfile} ${infile}
+
+### 7.0 Consensus Calling
+
+At this step we now create the consensus fasta file which we will use for downstream analysis, here we call consensus for position with support from atleast on read at that position, this is because we use metagenomic sequencing aproach the depth might be very low. if tilling approach was used for sequencing depth for calling consensus can be set to 5 or 10 reads per position.
+
+```
+# In case you install iVar through conda:
+conda activate ivar
+
+# Generate consensus FASTA:
+# Optionally, you can set different parameters to define minimum thresholds for the consensus
+
+# (see ivar consensus help).
+infile="aligned.sorted.mapped.markduplicates.bam"
+outfile="consensus_sequence.fa"
+samtools mpileup -A -Q 0 ${infile} | ivar consensus -p ${outfile} -q 10 -t 0 -m 1
+
+```
