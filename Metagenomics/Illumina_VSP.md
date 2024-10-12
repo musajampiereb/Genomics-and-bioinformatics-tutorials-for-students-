@@ -140,7 +140,7 @@ spades.py -o "$base" --meta \
 ## When working with a limited memory, please try velvet
 
 # Step 1: Prepare dataset with velveth
-velveth "$base/velvet_out" 31 -shortPaired -fastq -separate \
+velveth "$base/velvet_out" 120 -shortPaired -fastq -separate \
     "nonHost/${base}_reads_unmapped.1.fastq" \
     "nonHost/${base}_reads_unmapped.2.fastq"
 
