@@ -132,7 +132,7 @@ Here is the syntax for mapping non-human reads to the reference sequence using m
 
 ```
 # Define the reference genome:
-reference="path/to/reference_genome.fasta"
+reference="$WORKING_DIR/reference_genomes/human/Marburg_Ref_Seq.fasta"
 r1="$WORKING_DIR/nonHost/unclassified_1.fastq"
 r2="$WORKING_DIR/nonHost/unclassified_2.fastq"
 
