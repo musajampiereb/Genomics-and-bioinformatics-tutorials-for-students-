@@ -144,7 +144,7 @@ minimap2 -ax sr ${reference} ${r1} ${r2} > ${outfile}
 
 ```
 
-# 5 Processing of the mapped sequences
+## 5. Processing of the mapped sequences
 
 ### Sort SAM file
 ```
