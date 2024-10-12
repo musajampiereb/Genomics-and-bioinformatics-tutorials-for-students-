@@ -184,29 +184,30 @@ Variant calling is the process of identifying and cataloging the differences bet
 
 ### 6.1 variant calling using ivar
 
-# In case you install iVar through conda environment (ivar_env):
+In case you install iVar through conda environment (ivar_env):
 ```
 conda activate ivar_env
 ```
-# Make a pileup and pipe to iVar to call variants:
+Make a pileup and pipe to iVar to call variants:
 ```
 infile="aligned.sorted.mapped.markduplicates.bam"
 prefix="out_variants"
 samtools mpileup --reference ${reference} ${infile} | ivar variants -r ${reference} -p ${prefix}
 ```
-### 4.2 variant calling using Lofreq
-# In case you install LoFreq through conda environment :
+### 6.2 variant calling using Lofreq
+
+In case you install LoFreq through conda environment:
 ```
 conda activate lofreq_env
 ```
-# Call variants
-infile="aligned.sorted.mapped.markduplicates.bam"
+Call variants
+infile="aligned.sorted.mapped.bam"
 outfile="variants.vcf"
 lofreq call -f ${reference} -o ${outfile} ${infile}
 
 ### 7.0 Consensus Calling
 
-At this step we now create the consensus fasta file which we will use for downstream analysis, here we call consensus for position with support from atleast on read at that position, this is because we use metagenomic sequencing aproach the depth might be very low. if tilling approach was used for sequencing depth for calling consensus can be set to 5 or 10 reads per position.
+At this step we now create the consensus fasta file which we will use for downstream analysis, here we call consensus for position with support from at least on read at that position, this is because we use metagenomic sequencing aproach the depth might be very low. if tilling approach was used for sequencing depth for calling consensus can be set to 5 or 10 reads per position.
 
 ```
 # In case you install iVar through conda:
@@ -216,7 +217,7 @@ conda activate ivar
 # Optionally, you can set different parameters to define minimum thresholds for the consensus
 
 # (see ivar consensus help).
-infile="aligned.sorted.mapped.markduplicates.bam"
+infile="aligned.sorted.mapped.bam"
 outfile="consensus_sequence.fa"
 samtools mpileup -A -Q 0 ${infile} | ivar consensus -p ${outfile} -q 10 -t 0 -m 1
 
