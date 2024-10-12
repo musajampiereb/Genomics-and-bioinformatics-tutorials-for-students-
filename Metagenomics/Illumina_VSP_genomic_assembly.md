@@ -137,7 +137,7 @@ r1="nonHost/${base}_reads_unmapped.1.fastq"
 r2="nonHost/${base}_reads_unmapped.2.fastq"
 
 # Define aligned SAM file output:
-outfile="$WORKING_DIR/aligned.sam"
+outfile="$WORKING_DIR/reference_genomes/human/nonHost/aligned.sam"
 
 # Run Minimap2 command:
 minimap2 -ax sr ${reference} ${r1} ${r2} > ${outfile}
@@ -148,14 +148,14 @@ minimap2 -ax sr ${reference} ${r1} ${r2} > ${outfile}
 
 ### Sort SAM file
 ```
-infile="$WORKING_DIR/aligned.sam"
-outfile="$WORKING_DIR/aligned.sorted.bam"
+infile="$WORKING_DIR/reference_genomes/human/nonHost/aligned.sam"
+outfile="$WORKING_DIR/reference_genomes/human/nonHost/aligned.sorted.bam"
 samtools sort ${infile} > ${outfile}
 ```
 ### Discard un-mapped reads
 ```
-infile="$WORKING_DIR/aligned.sorted.bam"
-outfile="$WORKING_DIR/aligned.sorted.mapped.bam"
+infile="$WORKING_DIR/reference_genomes/human/nonHost/aligned.sorted.bam"
+outfile="$WORKING_DIR/reference_genomes/human/nonHost/aligned.sorted.mapped.bam"
 samtools view -F 0x04 -b ${infile} > ${outfile}
 ```
 ### Index BAM file
