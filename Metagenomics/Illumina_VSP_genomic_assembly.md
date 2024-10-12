@@ -132,15 +132,16 @@ Here is the syntax for mapping non-human reads to the reference sequence using m
 
 ```
 # Define the reference genome:
-reference="path/ to /reference_genome.fasta"
-r1="unclassified_1.fastq"
-r2="unclassified_2.fastq"
+reference="path/to/reference_genome.fasta"
+r1="$WORKING_DIR/nonHost/unclassified_1.fastq"
+r2="$WORKING_DIR/nonHost/unclassified_2.fastq"
 
-# Define aligned SAM file:
-outfile="aligned.sam"
+# Define aligned SAM file output:
+outfile="$WORKING_DIR/aligned.sam"
 
 # Run Minimap2 command:
 minimap2 -ax sr ${reference} ${r1} ${r2} > ${outfile}
+
 ```
 
 # 5 Processing of the mapped sequences
