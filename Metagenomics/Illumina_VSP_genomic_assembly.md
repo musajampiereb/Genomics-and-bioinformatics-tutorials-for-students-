@@ -23,8 +23,11 @@ This document describes a bioinformatics pipeline for analyzing Illumina sequenc
 - **fastp**: For trimming and quality control of raw sequencing reads.
 - **Bowtie2**: For aligning reads to a host genome and filtering out host sequences.
 - **Samtools**: For handling SAM/BAM files produced by `Bowtie2`.
-
-
+- **minimap2**: For aligning the unmapped reads to the reference.
+- **picard**: For removing duplicates.
+- **LoFred**: For variant calling.
+- **ivar**: For variant calling and consensus sequence generation.
+        
 ### Input Data
 
 - Raw Illumina sequencing reads in FASTQ format.
