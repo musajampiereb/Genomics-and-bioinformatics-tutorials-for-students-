@@ -55,6 +55,7 @@ DBs="$WORKING_DIR/databases/kaiju_viral_db"  # Replace with actual path to Kaiju
 mkdir -p "$FASTP_OUT_DIR"
 mkdir -p "$CLEAN_READS"
 mkdir -p "$READS_DIR"
+mkdir -p "$SCRIPTS"
 ```
 ### 2. Quality Control with ```fastp```
 
