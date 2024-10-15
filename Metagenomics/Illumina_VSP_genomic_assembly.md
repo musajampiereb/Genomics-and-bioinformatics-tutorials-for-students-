@@ -223,7 +223,7 @@ conda activate ivar
 # (see ivar consensus help).
 infile="aligned.sorted.mapped.bam"
 outfile="consensus_sequence.fa"
-samtools mpileup -A -Q 0 ${infile} | ivar consensus -p ${outfile} -q 10 -t 0 -m 1
+samtools mpileup -A -Q 0 ${infile} | ivar consensus -p ${outfile} -q 10 -t 0.5 -m 1
 # In case you install iVar through conda:
 conda activate ivar
 
