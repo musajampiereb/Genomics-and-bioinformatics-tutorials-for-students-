@@ -220,10 +220,6 @@ conda activate ivar
 # Generate consensus FASTA:
 # Optionally, you can set different parameters to define minimum thresholds for the consensus
 
-# (see ivar consensus help).
-infile="aligned.sorted.mapped.bam"
-outfile="consensus_sequence.fa"
-samtools mpileup -A -Q 0 ${infile} | ivar consensus -p ${outfile} -q 10 -t 0.5 -m 1
 # In case you install iVar through conda:
 conda activate ivar
 
@@ -235,6 +231,6 @@ infile="aligned.sorted.mapped.bam"
 outfile="consensus_sequence.fa"
 samtools mpileup -A -Q 0 ${infile} | \
 awk '$4 >= 50' | \
-ivar consensus -p ${outfile} -q 10
+ivar consensus -p ${outfile} -q 10 -t 0.5
 
 ```
