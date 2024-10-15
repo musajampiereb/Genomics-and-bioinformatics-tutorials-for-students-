@@ -76,7 +76,7 @@ After running fastp, move the cleaned reads to a designated directory:
 # Move and compress cleaned reads
 mv "$FASTP_OUT_DIR"/*/*.fastq "$CLEAN_READS"
 gzip "$CLEAN_READS"/*.fastq
-chmod +rwx "$CLEAN_READS"/*.fastq
+chmod +rwx "$CLEAN_READS"/*.fastq.gz
 ```
 ### 3. Host Genome Removal with ```Bowtie2```
 
