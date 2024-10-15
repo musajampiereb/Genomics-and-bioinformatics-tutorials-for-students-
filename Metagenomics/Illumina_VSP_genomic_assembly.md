@@ -194,7 +194,7 @@ conda activate ivar_env
 ```
 Make a pileup and pipe to iVar to call variants:
 ```
-infile="aligned.sorted.mapped.markduplicates.bam"
+infile="aligned.sorted.mapped.bam"
 prefix="out_variants"
 samtools mpileup --reference ${reference} ${infile} | ivar variants -r ${reference} -p ${prefix}
 ```
