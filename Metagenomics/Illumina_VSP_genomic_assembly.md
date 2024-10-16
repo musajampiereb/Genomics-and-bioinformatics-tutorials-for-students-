@@ -136,7 +136,7 @@ Here is the syntax for mapping non-human reads to the reference sequence using m
 
 ```
 # Define the reference genome:
-reference="$WORKING_DIR/reference_genomes/human/NC_001608.3"
+reference="$WORKING_DIR/reference_genomes/human/NC_001608.3.fa"
 r1="nonHost/${base}_reads_unmapped.1.fastq"
 r2="nonHost/${base}_reads_unmapped.2.fastq"
 
