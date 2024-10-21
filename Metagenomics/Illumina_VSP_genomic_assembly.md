@@ -231,6 +231,5 @@ infile="aligned.sorted.mapped.bam"
 outfile="consensus_sequence.fa"
 samtools mpileup -A -Q 0 ${infile} | \
 awk '$4 >= 50' | \
-ivar consensus -p ${outfile} -q 10 -t 0.5
-
+ivar consensus -p ${outfile} -q 20 -t 0.7 -m 50
 ```
