@@ -160,12 +160,33 @@ After classification, extract viral sequences from the Kaiju output. This can be
 # Filter Kaiju output for viral classifications
 for file in "$KAIJU_DIR"/*_kaiju-names.out; do
     base=$(basename "$file" _kaiju-names.out)
-    
-    # Extract lines classified as viruses (this depends on the specific taxonomic ID for viruses)
-    grep 'Viruses' "$file" > "$KAIJU_DIR/${base}_viruses.out"
-    
-    echo "Virus classification extracted for $base"
+
+    # Display the contents of the input file (first 20 lines)
+    echo "Processing file: $file"
+    echo "Contents of $file (first 20 lines):"
+    head -n 20 "$file"
+
+    # Try extracting lines classified as viruses using different patterns
+    echo "Searching for virus classifications..."
+    grep -i -E 'virus|viruses' "$file" > "$KAIJU_DIR/${base}_viruses.out"
+
+    # Output the number of lines found
+    found_lines=$(wc -l < "$KAIJU_DIR/${base}_viruses.out")
+    echo "Lines found for viruses: $found_lines"
+
+    # Check if output file is empty
+    if [ ! -s "$KAIJU_DIR/${base}_viruses.out" ]; then
+        echo "No virus classifications found for $base."
+    else
+        echo "Virus classification extracted for $base"
+    fi
+
+    # Optional: Show the first few lines of the output file
+    echo "First few lines of ${base}_viruses.out:"
+    head -n 5 "$KAIJU_DIR/${base}_viruses.out"
+    echo "-----------------------------"
 done
+
 ```
 ### 6. Relative Abundance Calculation and Stacked Bar Plot
 
