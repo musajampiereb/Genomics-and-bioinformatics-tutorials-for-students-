@@ -132,17 +132,17 @@ Since we are performing read-level classification, there is no need to assemble 
 ```bash
 #!/bin/bash
 # Define paths
-DB_PATH="$DBs/kaiju_db_viruses.fmi"  # Replace with actual path to Kaiju virus database
+DB_PATH="$DBs/kaiju_db_viruses.fmi"  # Path to Kaiju virus database
 NODES_PATH="$DBs/nodes.dmp"          # Path to Kaiju taxonomic nodes file
 NAMES_PATH="$DBs/names.dmp"          # Path to Kaiju taxonomic names file
 THREADS=12
 
-# Perform classification on each sample
-for fwd_file in "$CLEAN_READS"/*_1.fastq.gz; do
-    base=$(basename "$fwd_file" _1.fastq.gz)
-    rev_file="$CLEAN_READS/${base}_2.fastq.gz"
+# Perform classification on each de-hosted sample
+for fwd_file in "$WORKING_DIR/reference_genomes/human/nonHost"/*_reads_unmapped.1.fastq; do
+    base=$(basename "$fwd_file" _reads_unmapped.1.fastq)
+    rev_file="$WORKING_DIR/reference_genomes/human/nonHost/${base}_reads_unmapped.2.fastq"
 
-    # Run Kaiju for taxonomic classification of reads
+    # Run Kaiju for taxonomic classification of de-hosted reads
     kaiju -z "$THREADS" -t "$NODES_PATH" -f "$DB_PATH" -i "$fwd_file" -j "$rev_file" -o "$KAIJU_DIR/${base}_kaiju.out"
 
     # Add taxon names to the Kaiju output
@@ -151,6 +151,7 @@ for fwd_file in "$CLEAN_READS"/*_1.fastq.gz; do
     echo "Kaiju classification completed for $base"
 done
 ```
+
 ### 5. Filter and Extract Virus Classifications
 
 After classification, extract viral sequences from the Kaiju output. This can be done by filtering for the viral taxonomic groups.
