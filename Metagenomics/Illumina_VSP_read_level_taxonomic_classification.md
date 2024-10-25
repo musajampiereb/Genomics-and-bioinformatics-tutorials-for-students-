@@ -215,17 +215,22 @@ for file in "$KAIJU_DIR"/*_viruses.out; do
     echo -e "Sample\tAbundance\tTaxon" > "$individual_output"
 
     # Calculate relative abundance and match taxon names from the names file
-    awk -F'\t' '{print $3}' "$file" | sort | uniq -c | while read -r count taxon_id; do
-        # Extract taxon name from the kaiju-names file
-        taxon_name=$(grep -P "\t$taxon_id\t" "$names_file" | awk -F'\t' '{print $2}')
+    awk -F'\t' '{
+        if (NF >= 4) {  # Ensure there are at least 4 columns
+            taxon_id = $3; 
+            taxon_name = $4; 
+            count[taxon_id] += 1;  # Count occurrences of each taxon ID
+            names[taxon_id] = taxon_name;  # Store the taxon name
+        }
+    } END {
+        for (id in count) {
+            abundance = (count[id] / total_virus_reads) * 100;  # Calculate relative abundance
+            print base, abundance, names[id];  # Print the results
+        }
+    }' total_virus_reads="$total_virus_reads" base="$base" "$file" > "$individual_output"
 
-        # Calculate relative abundance percentage
-        abundance=$(echo "scale=2; ($count / $total_virus_reads) * 100" | bc)
-
-        # Write to individual output and append to the consolidated file
-        echo -e "${base}\t${abundance}\t${taxon_name}" >> "$individual_output"
-        echo -e "${base}\t${abundance}\t${taxon_name}" >> "$output_file"
-    done
+    # Append to the consolidated output file
+    cat "$individual_output" >> "$output_file"
 
     echo "Relative abundance calculated for $base and saved in ${individual_output}"
 done
