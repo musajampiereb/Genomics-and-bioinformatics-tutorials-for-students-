@@ -193,18 +193,45 @@ done
 For each sample, calculate the relative abundance of each viral taxon based on the number of classified reads.
 
 ```
-# Calculate relative abundance of viruses
+# Calculate relative abundance of viruses and create a consolidated abundance file with headers
+output_file="$KAIJU_DIR/abundance.txt"
+echo -e "Sample\tAbundance\tTaxon" > "$output_file"
+
 for file in "$KAIJU_DIR"/*_viruses.out; do
     base=$(basename "$file" _viruses.out)
+    names_file="$KAIJU_DIR/${base}_kaiju-names.out"
 
     # Count the total number of reads classified as viruses
     total_virus_reads=$(wc -l < "$file")
 
-    # Count the reads for each viral taxon and calculate relative abundance
-    awk -F'\t' '{print $3}' "$file" | sort | uniq -c | awk -v total="$total_virus_reads" '{OFS="\t"; print $2, $1, ($1/total)*100}' > "$KAIJU_DIR/${base}_virus_abundance.txt"
+    # Check if the names file exists to extract the taxon names
+    if [ ! -f "$names_file" ]; then
+        echo "Warning: No matching names file found for $base. Skipping."
+        continue
+    fi
 
-    echo "Relative abundance calculated for $base"
+    # Prepare individual output file with headers
+    individual_output="$KAIJU_DIR/${base}_virus_abundance.txt"
+    echo -e "Sample\tAbundance\tTaxon" > "$individual_output"
+
+    # Calculate relative abundance and match taxon names from the names file
+    awk -F'\t' '{print $3}' "$file" | sort | uniq -c | while read -r count taxon_id; do
+        # Extract taxon name from the kaiju-names file
+        taxon_name=$(grep -P "\t$taxon_id\t" "$names_file" | awk -F'\t' '{print $2}')
+
+        # Calculate relative abundance percentage
+        abundance=$(echo "scale=2; ($count / $total_virus_reads) * 100" | bc)
+
+        # Write to individual output and append to the consolidated file
+        echo -e "${base}\t${abundance}\t${taxon_name}" >> "$individual_output"
+        echo -e "${base}\t${abundance}\t${taxon_name}" >> "$output_file"
+    done
+
+    echo "Relative abundance calculated for $base and saved in ${individual_output}"
 done
+
+echo "Consolidated abundance data saved to $output_file"
+
 ```
 
 ### 7. Plotting the Stacked Bar Chart (R Script)
