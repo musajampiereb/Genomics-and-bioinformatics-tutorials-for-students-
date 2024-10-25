@@ -245,8 +245,11 @@ echo "Consolidated abundance data saved to $output_file"
 Use the ```ggplot2``` library in R to generate a stacked bar chart showing the relative abundance of viral taxa for each sample.
 
 ```
-# Load required library
+# R Script for Plotting Relative Abundance with Dark and Intense Colors
+
+# Load required libraries
 library(ggplot2)
+library(RColorBrewer)
 
 # Define the path to the abundance data file
 abundance_file_path <- "/Volumes/Biospace/MVD_Rwanda_VSP/MVD_assemblies/kaiju_dir/abundance.txt"
@@ -256,48 +259,46 @@ if (!file.exists(abundance_file_path)) {
     stop("Error: The abundance file does not exist at the specified path.")
 }
 
-# Step 1: Display the structure of the file to check for any issues
-cat("Previewing first few lines of the abundance file:\n")
-print(readLines(abundance_file_path, n = 5))
+# Read the data
+abundance_data <- read.table(abundance_file_path, header = TRUE, sep = "\t", stringsAsFactors = FALSE)
 
-# Step 2: Load the data with read.delim for better handling of tab-delimited data
-abundance_data <- tryCatch({
-    read.delim(abundance_file_path, header = TRUE, sep = "\t", stringsAsFactors = FALSE)
-}, error = function(e) {
-    stop("Error reading the abundance file. Check for inconsistent rows or delimiters.")
-})
-
-# Check if the data is empty or if there are missing columns
+# Check if the data is empty
 if (nrow(abundance_data) == 0) {
     stop("Error: The abundance data file is empty.")
 }
-if (!all(c("Sample", "Abundance", "Taxon") %in% colnames(abundance_data))) {
-    stop("Error: The abundance data file must contain the columns: Sample, Abundance, and Taxon.")
+
+# Check for required columns
+required_columns <- c("Sample", "Abundance", "Taxon")
+if (!all(required_columns %in% colnames(abundance_data))) {
+    stop("Error: The abundance data file must contain the following columns: Sample, Abundance, Taxon.")
 }
 
-# Convert Abundance to numeric, handling any non-numeric entries gracefully
-abundance_data$Abundance <- as.numeric(as.character(abundance_data$Abundance))
-
-# Check for NA values after conversion
-if (any(is.na(abundance_data$Abundance))) {
-    stop("Error: Abundance column contains non-numeric values.")
-}
+# Generate a dark, intense color palette based on the number of unique taxa
+unique_taxa <- unique(abundance_data$Taxon)
+color_count <- length(unique_taxa)
+color_palette <- colorRampPalette(brewer.pal(8, "Dark2"))(color_count)
 
 # Create a stacked bar chart
 plot <- ggplot(abundance_data, aes(x = Sample, y = Abundance, fill = Taxon)) +
-    geom_bar(stat = "identity", position = "stack") +
-    scale_y_continuous(labels = scales::percent_format(scale = 1)) +
+    geom_bar(stat = "identity", position = "stack") +  # Stacked position
+    scale_fill_manual(values = color_palette) +        # Use custom color palette
+    scale_y_continuous(labels = scales::percent_format(scale = 1)) +  # Format y-axis as percentage
     theme_minimal() +
-    labs(title = "Relative Abundance of Viral Taxa per Sample",
+    labs(title = "Viral Taxa Distribution",
          x = "Sample",
          y = "Relative Abundance (%)") +
-    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+    theme(
+        axis.text.x = element_text(angle = 45, hjust = 1),
+        plot.title = element_text(face = "bold"),
+        legend.title = element_text(face = "bold")
+    )
 
 # Define the output plot file path
-output_plot_path <- "/Volumes/Biospace/MVD_Rwanda_VSP/MVD_assemblies/kaiju_dir/viral_abundance_distribution.png"
+output_plot_path <- "/Volumes/Biospace/MVD_Rwanda_VSP/MVD_assemblies/kaiju_dir/viral_taxa_distribution.png"
 
-# Save the plot
-ggsave(output_plot_path, plot = plot, width = 10, height = 6)
+# Save the plot to a file
+ggsave(output_plot_path, plot = plot, width = 10, height = 6, dpi = 300)
 
 cat("Plot saved to:", output_plot_path, "\n")
+
 ```
