@@ -193,43 +193,44 @@ done
 For each sample, calculate the relative abundance of each viral taxon based on the number of classified reads.
 
 ```
-# Calculate relative abundance of viruses and create a consolidated abundance file with headers
+# Set the output file path and add headers
 output_file="$KAIJU_DIR/abundance.txt"
 echo -e "Sample\tAbundance\tTaxon" > "$output_file"
 
+# Loop through each viruses.out file in the directory
 for file in "$KAIJU_DIR"/*_viruses.out; do
     base=$(basename "$file" _viruses.out)
     names_file="$KAIJU_DIR/${base}_kaiju-names.out"
 
-    # Count the total number of reads classified as viruses
+    # Count total virus reads
     total_virus_reads=$(wc -l < "$file")
 
-    # Check if the names file exists to extract the taxon names
+    # Check if the corresponding names file exists
     if [ ! -f "$names_file" ]; then
         echo "Warning: No matching names file found for $base. Skipping."
         continue
     fi
 
-    # Prepare individual output file with headers
+    # Set up individual output file with headers
     individual_output="$KAIJU_DIR/${base}_virus_abundance.txt"
     echo -e "Sample\tAbundance\tTaxon" > "$individual_output"
 
-    # Calculate relative abundance and match taxon names from the names file
-    awk -F'\t' '{
+    # Calculate relative abundance and match taxon names from names file
+    awk -F'\t' -v total="$total_virus_reads" -v sample="$base" '{
         if (NF >= 4) {  # Ensure there are at least 4 columns
-            taxon_id = $3; 
-            taxon_name = $4; 
-            count[taxon_id] += 1;  # Count occurrences of each taxon ID
-            names[taxon_id] = taxon_name;  # Store the taxon name
+            taxon_id = $3
+            taxon_name = $4
+            count[taxon_id] += 1  # Count occurrences of each taxon ID
+            names[taxon_id] = taxon_name  # Store the taxon name
         }
     } END {
         for (id in count) {
-            abundance = (count[id] / total_virus_reads) * 100;  # Calculate relative abundance
-            print base, abundance, names[id];  # Print the results
+            abundance = (count[id] / total) * 100  # Calculate relative abundance
+            printf "%s\t%.2f\t%s\n", sample, abundance, names[id]  # Print formatted output
         }
-    }' total_virus_reads="$total_virus_reads" base="$base" "$file" > "$individual_output"
+    }' "$file" > "$individual_output"
 
-    # Append to the consolidated output file
+    # Append formatted data to the consolidated output file
     cat "$individual_output" >> "$output_file"
 
     echo "Relative abundance calculated for $base and saved in ${individual_output}"
