@@ -214,10 +214,30 @@ Use the ```ggplot2``` library in R to generate a stacked bar chart showing the r
 ```
 # R Script for Plotting Relative Abundance
 
+# Load required library
 library(ggplot2)
 
-# Read the data (assuming it's compiled into one file with sample names)
-abundance_data <- read.table("allSamples_virus_abundance.txt", header = TRUE, sep = "\t")
+# Define the path to the abundance data file
+abundance_file_path <- "/Volumes/Biospace/MVD_Rwanda_VSP/MVD_assemblies/kaiju_dir/Sample016_S16_virus_abundance.txt"
+
+# Check if the file exists
+if (!file.exists(abundance_file_path)) {
+    stop("Error: The abundance file does not exist at the specified path.")
+}
+
+# Read the data
+abundance_data <- read.table(abundance_file_path, header = TRUE, sep = "\t")
+
+# Check if the data is empty
+if (nrow(abundance_data) == 0) {
+    stop("Error: The abundance data file is empty.")
+}
+
+# Check for required columns
+required_columns <- c("Sample", "Abundance", "Taxon")
+if (!all(required_columns %in% colnames(abundance_data))) {
+    stop("Error: The abundance data file must contain the following columns: Sample, Abundance, Taxon.")
+}
 
 # Create a stacked bar chart
 ggplot(abundance_data, aes(x = Sample, y = Abundance, fill = Taxon)) +
@@ -227,4 +247,8 @@ ggplot(abundance_data, aes(x = Sample, y = Abundance, fill = Taxon)) +
          x = "Sample",
          y = "Relative Abundance (%)") +
     theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+# Save the plot to a file (optional)
+ggsave("viral_taxa_distribution_Sample016.png", width = 10, height = 6)  # Adjust dimensions as needed
+
 ```
