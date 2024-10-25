@@ -125,68 +125,84 @@ for fwd_file in "$CLEAN_READS"/*.fastp_1.fastq.gz; do
   samtools flagstat -@ "$threads" "$WORKING_DIR/reference_genomes/human/$sam_output" > "$WORKING_DIR/reference_genomes/human/${base}/${base}.flagstat"
 done
 ```
-### 4. DeNovo Metagenomic Assembly
+### 4. Taxonomic Classification with Kaiju
 
-Use either ```Megahit``` , ```SPAdes``` or ```Velvet1``` (depending on the available memory) to assemble the non-host reads into contigs.
+Since we are performing read-level classification, there is no need to assemble the reads into contigs. Instead, classify the non-host reads directly using ```Kaiju```.
 
 ```bash
-# Assemble non-host reads with Megahit
-megahit -1 "nonHost/${base}_reads_unmapped.1.fastq" \
-        -2 "nonHost/${base}_reads_unmapped.2.fastq" \
-        -t "$threads" -o "$base/megahit_out"
+#!/bin/bash
+# Define paths
+DB_PATH="$DBs/kaiju_db_viruses.fmi"  # Replace with actual path to Kaiju virus database
+NODES_PATH="$DBs/nodes.dmp"          # Path to Kaiju taxonomic nodes file
+NAMES_PATH="$DBs/names.dmp"          # Path to Kaiju taxonomic names file
+THREADS=12
 
-# Alternatively, assemble with SPAdes
-spades.py -o "$base" --meta \
-          -1 "nonHost/${base}_reads_unmapped.1.fastq" \
-          -2 "nonHost/${base}_reads_unmapped.2.fastq" \
-          --only-assembler -t "$threads"
+# Perform classification on each sample
+for fwd_file in "$CLEAN_READS"/*_1.fastq.gz; do
+    base=$(basename "$fwd_file" _1.fastq.gz)
+    rev_file="$CLEAN_READS/${base}_2.fastq.gz"
 
-## When working with a limited memory, please try velvet
+    # Run Kaiju for taxonomic classification of reads
+    kaiju -z "$THREADS" -t "$NODES_PATH" -f "$DB_PATH" -i "$fwd_file" -j "$rev_file" -o "$KAIJU_DIR/${base}_kaiju.out"
 
-# Step 1: Prepare dataset with velveth
-velveth "$base/velvet_out" 120 -shortPaired -fastq -separate \
-    "nonHost/${base}_reads_unmapped.1.fastq" \
-    "nonHost/${base}_reads_unmapped.2.fastq"
-
-# Step 2: Perform assembly with velvetg
-velvetg "$base/velvet_out" -exp_cov auto -cov_cutoff auto -ins_length 300 -min_contig_lgth 200
+    # Add taxon names to the Kaiju output
+    kaiju-addTaxonNames -t "$NODES_PATH" -n "$NAMES_PATH" -i "$KAIJU_DIR/${base}_kaiju.out" -o "$KAIJU_DIR/${base}_kaiju-names.out"
+    
+    echo "Kaiju classification completed for $base"
+done
 ```
-### 5. Taxonomic Classification with Kaiju
+### 5. Filter and Extract Virus Classifications
 
-Run ```Kaiju``` to classify the assembled contigs into taxonomic categories based on the reference database.
+After classification, extract viral sequences from the Kaiju output. This can be done by filtering for the viral taxonomic groups.
 
 ```bash
-# Run Kaiju for taxonomic classification
-kaiju -t "$DBs/nodes.dmp" \
-      -f "$DBs/kaiju_db_viruses.fmi" \
-      -i "${base}/velvet_out/contigs.fa" -z "$threads" \
-      -o "$base/${base}_kaiju.out"
+# Filter Kaiju output for viral classifications
+for file in "$KAIJU_DIR"/*_kaiju-names.out; do
+    base=$(basename "$file" _kaiju-names.out)
+    
+    # Extract lines classified as viruses (this depends on the specific taxonomic ID for viruses)
+    grep 'Viruses' "$file" > "$KAIJU_DIR/${base}_viruses.out"
+    
+    echo "Virus classification extracted for $base"
+done
 ```
-Add taxon names to the Kaiju output:
+### 6. Relative Abundance Calculation and Stacked Bar Plot
 
-```bash
-# Add taxon names to Kaiju output
-kaiju-addTaxonNames -t "$DBs/nodes.dmp" \
-                    -n "$DBs/names.dmp" \
-                    -i "$base/${base}_kaiju.out" \
-                    -o "$base/${base}_kaiju-names.out" -p
+For each sample, calculate the relative abundance of each viral taxon based on the number of classified reads.
+
+```
+# Calculate relative abundance of viruses
+for file in "$KAIJU_DIR"/*_viruses.out; do
+    base=$(basename "$file" _viruses.out)
+
+    # Count the total number of reads classified as viruses
+    total_virus_reads=$(wc -l < "$file")
+
+    # Count the reads for each viral taxon and calculate relative abundance
+    awk -F'\t' '{print $3}' "$file" | sort | uniq -c | awk -v total="$total_virus_reads" '{OFS="\t"; print $2, $1, ($1/total)*100}' > "$KAIJU_DIR/${base}_virus_abundance.txt"
+
+    echo "Relative abundance calculated for $base"
+done
 ```
 
-Filter classified sequences:
+### 7. Plotting the Stacked Bar Chart (R Script)
 
-```bash
-# Extract classified sequences from Kaiju output
-grep '^C' "$base/${base}_kaiju-names.out" | sed 's/;/\t/g' > "$base/${base}_classified-kaiju.tmp"
-awk -v base="$base" '{OFS="\t"; print base, $0}' "$base/${base}_classified-kaiju.tmp" > "$base/${base}_classified-kaiju.out"
-rm "$base/${base}_classified-kaiju.tmp"
+Use the ```ggplot2``` library in R to generate a stacked bar chart showing the relative abundance of viral taxa for each sample.
+
 ```
-### 6. Compile Results
+# R Script for Plotting Relative Abundance
 
-Finally, compile the results from all samples into a single file for further analysis.
+library(ggplot2)
 
-```bash
-# Compile results across all samples
-cat */*_classified-kaiju.out | awk '$2 == "C"' > allSamples_kaiju_results.txt
+# Read the data (assuming it's compiled into one file with sample names)
+abundance_data <- read.table("allSamples_virus_abundance.txt", header = TRUE, sep = "\t")
 
-echo "Metagenomics analysis pipeline completed!"
+# Create a stacked bar chart
+ggplot(abundance_data, aes(x = Sample, y = Abundance, fill = Taxon)) +
+    geom_bar(stat = "identity") +
+    theme_minimal() +
+    labs(title = "Viral Taxa Distribution",
+         x = "Sample",
+         y = "Relative Abundance (%)") +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
